@@ -1,0 +1,20 @@
+name: cake_flutter
+description: A new Flutter package project.
+version: 0.0.1
+homepage: https://github.com/Polyhedra-Studio/Cake-Flutter.git
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cake:
+    version: ^5.0.2
+
+dev_dependencies:
+  polyhedra_lint:
+    version: ^1.0.4
+
+flutter:
