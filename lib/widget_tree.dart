@@ -30,32 +30,16 @@ class WidgetTreeNode extends WidgetTree {
 
   void create() {
     // This item should already be built, find it within the existing tree
-    _widgetWrapper = TestElementWrapper(nodeElement);
+    _elementWrapper = TestElementWrapper(nodeElement);
     _findChildren(nodeElement);
   }
 }
 
 abstract class WidgetTree {
-  TestElementWrapper? _widgetWrapper;
+  TestElementWrapper? _elementWrapper;
   final List<WidgetTree> _children = [];
 
   WidgetTree();
-
-  TestElementWrapperCollection searchText(
-    String searchCriteria, [
-    TestElementWrapperCollection? collection,
-  ]) {
-    collection ??= TestElementWrapperCollection();
-
-    if (_widgetWrapper?.text == searchCriteria) {
-      collection.add(_widgetWrapper!);
-    }
-    for (var element in _children) {
-      element.searchText(searchCriteria, collection);
-    }
-
-    return collection;
-  }
 
   void _findChildren(Element? element) {
     print('Finding children for ${element?.widget.runtimeType}');
@@ -73,5 +57,37 @@ abstract class WidgetTree {
       tree.create();
       _children.add(tree);
     }
+  }
+
+  TestElementWrapperCollection searchText(
+    String searchCriteria, [
+    TestElementWrapperCollection? collection,
+  ]) {
+    collection ??= TestElementWrapperCollection();
+
+    if (_elementWrapper?.text == searchCriteria) {
+      collection.add(_elementWrapper!);
+    }
+    for (var element in _children) {
+      element.searchText(searchCriteria, collection);
+    }
+
+    return collection;
+  }
+
+  TestElementWrapperCollection searchIcon(
+    IconData searchCriteria, [
+    TestElementWrapperCollection? collection,
+  ]) {
+    collection ??= TestElementWrapperCollection();
+
+    if (_elementWrapper?.iconData == searchCriteria) {
+      collection.add(_elementWrapper!);
+    }
+    for (var element in _children) {
+      element.searchIcon(searchCriteria, collection);
+    }
+
+    return collection;
   }
 }

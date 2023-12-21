@@ -15,6 +15,6 @@ class Search {
   }
 
   TestElementWrapperCollection icon(IconData iconData) {
-    return TestElementWrapperCollection();
+    return _tree.searchIcon(iconData);
   }
 }

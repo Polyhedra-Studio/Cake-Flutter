@@ -6,6 +6,10 @@ class TestElementWrapper {
 
   String? _text;
   String? get text => _text;
+
+  IconData? _iconData;
+  IconData? get iconData => _iconData;
+
   TestElementWrapper(this.element) : widget = element.widget {
     _parseElement();
   }
@@ -18,6 +22,10 @@ class TestElementWrapper {
     if (element is StatelessElement) {
       if (widget is Text) {
         _text = (widget as Text).data;
+      }
+
+      if (widget is Icon) {
+        _iconData = (widget as Icon).icon;
       }
     }
   }
