@@ -17,4 +17,8 @@ class Search {
   TestElementWrapperCollection icon(IconData iconData) {
     return _tree.searchIcon(iconData);
   }
+
+  TestElementWrapperCollection<W> type<W extends Widget>() {
+    return _tree.searchType<W>();
+  }
 }

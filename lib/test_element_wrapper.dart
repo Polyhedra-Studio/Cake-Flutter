@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-class TestElementWrapper {
+class TestElementWrapper<W extends Widget> {
   final Element element;
-  Widget widget;
+  W widget;
 
   String? _text;
   String? get text => _text;
@@ -10,13 +10,22 @@ class TestElementWrapper {
   IconData? _iconData;
   IconData? get iconData => _iconData;
 
-  TestElementWrapper(this.element) : widget = element.widget {
+  TestElementWrapper(this.element) : widget = (element.widget as W) {
     _parseElement();
   }
 
   TestElementWrapper.empty()
-      : widget = Container(),
+      : widget = Container() as W,
         element = StatelessElement(Container());
+
+  TestElementWrapper<W2> asType<W2 extends Widget>() {
+    assert(widget is W2, 'Converting ${widget.runtimeType} to $W2');
+    return TestElementWrapper<W2>(element);
+  }
+
+  void tap() {
+    // TODO
+  }
 
   void _parseElement() {
     if (element is StatelessElement) {
@@ -29,23 +38,20 @@ class TestElementWrapper {
       }
     }
   }
-
-  void tap() {
-    // TODO
-  }
 }
 
-class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
-  final List<TestElementWrapper> elements = [];
+class TestElementWrapperCollection<W extends Widget>
+    implements Iterable<TestElementWrapper<W>> {
+  final List<TestElementWrapper<W>> elements = [];
 
   TestElementWrapperCollection();
 
-  void add(TestElementWrapper element) {
+  void add(TestElementWrapper<W> element) {
     elements.add(element);
   }
 
   @override
-  TestElementWrapper get first {
+  TestElementWrapper<W> get first {
     if (elements.isNotEmpty) {
       return elements.first;
     } else {
@@ -54,7 +60,7 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  TestElementWrapper get last {
+  TestElementWrapper<W> get last {
     if (elements.isNotEmpty) {
       return elements.last;
     } else {
@@ -63,7 +69,7 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  TestElementWrapper elementAt(int index) {
+  TestElementWrapper<W> elementAt(int index) {
     if (elements.length > index) {
       return elements.elementAt(index);
     } else {
@@ -82,21 +88,21 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  bool every(bool Function(TestElementWrapper element) test) {
+  bool every(bool Function(TestElementWrapper<W> element) test) {
     return elements.every(test);
   }
 
   @override
   Iterable<T> expand<T>(
-    Iterable<T> Function(TestElementWrapper element) toElements,
+    Iterable<T> Function(TestElementWrapper<W> element) toElements,
   ) {
     return elements.expand<T>(toElements);
   }
 
   @override
-  TestElementWrapper firstWhere(
-    bool Function(TestElementWrapper element) test, {
-    TestElementWrapper Function()? orElse,
+  TestElementWrapper<W> firstWhere(
+    bool Function(TestElementWrapper<W> element) test, {
+    TestElementWrapper<W> Function()? orElse,
   }) {
     return elements.firstWhere(
       test,
@@ -107,18 +113,19 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   @override
   T fold<T>(
     T initialValue,
-    T Function(T previousValue, TestElementWrapper element) combine,
+    T Function(T previousValue, TestElementWrapper<W> element) combine,
   ) {
     return elements.fold<T>(initialValue, combine);
   }
 
   @override
-  Iterable<TestElementWrapper> followedBy(Iterable<TestElementWrapper> other) {
+  Iterable<TestElementWrapper<W>> followedBy(
+      Iterable<TestElementWrapper<W>> other) {
     return elements.followedBy(other);
   }
 
   @override
-  void forEach(void Function(TestElementWrapper element) action) {
+  void forEach(void Function(TestElementWrapper<W> element) action) {
     elements.forEach(action);
   }
 
@@ -129,7 +136,7 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   bool get isNotEmpty => elements.isNotEmpty;
 
   @override
-  Iterator<TestElementWrapper> get iterator => elements.iterator;
+  Iterator<TestElementWrapper<W>> get iterator => elements.iterator;
 
   @override
   String join([String separator = ""]) {
@@ -137,9 +144,9 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  TestElementWrapper lastWhere(
-    bool Function(TestElementWrapper element) test, {
-    TestElementWrapper Function()? orElse,
+  TestElementWrapper<W> lastWhere(
+    bool Function(TestElementWrapper<W> element) test, {
+    TestElementWrapper<W> Function()? orElse,
   }) {
     return elements.lastWhere(
       test,
@@ -151,22 +158,22 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   int get length => elements.length;
 
   @override
-  Iterable<T> map<T>(T Function(TestElementWrapper e) toElement) {
+  Iterable<T> map<T>(T Function(TestElementWrapper<W> e) toElement) {
     return elements.map<T>(toElement);
   }
 
   @override
-  TestElementWrapper reduce(
-    TestElementWrapper Function(
-      TestElementWrapper value,
-      TestElementWrapper element,
+  TestElementWrapper<W> reduce(
+    TestElementWrapper<W> Function(
+      TestElementWrapper<W> value,
+      TestElementWrapper<W> element,
     ) combine,
   ) {
     return elements.reduce(combine);
   }
 
   @override
-  TestElementWrapper get single {
+  TestElementWrapper<W> get single {
     if (elements.length == 1) {
       return elements.single;
     } else {
@@ -175,9 +182,9 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  TestElementWrapper singleWhere(
-    bool Function(TestElementWrapper element) test, {
-    TestElementWrapper Function()? orElse,
+  TestElementWrapper<W> singleWhere(
+    bool Function(TestElementWrapper<W> element) test, {
+    TestElementWrapper<W> Function()? orElse,
   }) {
     return elements.singleWhere(
       test,
@@ -186,42 +193,42 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  Iterable<TestElementWrapper> skip(int count) {
+  Iterable<TestElementWrapper<W>> skip(int count) {
     return elements.skip(count);
   }
 
   @override
-  Iterable<TestElementWrapper> skipWhile(
-    bool Function(TestElementWrapper value) test,
+  Iterable<TestElementWrapper<W>> skipWhile(
+    bool Function(TestElementWrapper<W> value) test,
   ) {
     return elements.skipWhile(test);
   }
 
   @override
-  Iterable<TestElementWrapper> take(int count) {
+  Iterable<TestElementWrapper<W>> take(int count) {
     return elements.take(count);
   }
 
   @override
-  Iterable<TestElementWrapper> takeWhile(
-    bool Function(TestElementWrapper value) test,
+  Iterable<TestElementWrapper<W>> takeWhile(
+    bool Function(TestElementWrapper<W> value) test,
   ) {
     return elements.takeWhile(test);
   }
 
   @override
-  List<TestElementWrapper> toList({bool growable = true}) {
+  List<TestElementWrapper<W>> toList({bool growable = true}) {
     return elements.toList(growable: growable);
   }
 
   @override
-  Set<TestElementWrapper> toSet() {
+  Set<TestElementWrapper<W>> toSet() {
     return elements.toSet();
   }
 
   @override
-  Iterable<TestElementWrapper> where(
-    bool Function(TestElementWrapper element) test,
+  Iterable<TestElementWrapper<W>> where(
+    bool Function(TestElementWrapper<W> element) test,
   ) {
     return elements.where(test);
   }
@@ -232,7 +239,7 @@ class TestElementWrapperCollection implements Iterable<TestElementWrapper> {
   }
 
   @override
-  bool any(bool Function(TestElementWrapper element) test) {
+  bool any(bool Function(TestElementWrapper<W> element) test) {
     return elements.any(test);
   }
 }

@@ -3,13 +3,11 @@
 import 'dart:async';
 
 import 'package:cake_flutter/flutter_extensions/cake_binding.dart';
-import 'package:cake_flutter/flutter_extensions/cake_element.dart';
-import 'package:cake_flutter/flutter_extensions/test_view_widget.dart';
 import 'package:cake_flutter/test_element_wrapper.dart';
 import 'package:flutter/material.dart';
 
-class WidgetTreeRoot extends WidgetTree {
-  final Widget rootWidget;
+class WidgetTreeRoot<W extends Widget> extends WidgetTree<W> {
+  final W rootWidget;
   WidgetTreeRoot(this.rootWidget);
 
   Future<void> createRoot(CakeBinding binding) async {
@@ -24,19 +22,20 @@ class WidgetTreeRoot extends WidgetTree {
 
 typedef WidgetTreeBuilder = void Function(Element nodeElement);
 
-class WidgetTreeNode extends WidgetTree {
+class WidgetTreeNode<W extends Widget> extends WidgetTree<W> {
   final Element nodeElement;
-  WidgetTreeNode(this.nodeElement);
+  final W widget;
+  WidgetTreeNode(this.nodeElement, this.widget);
 
   void create() {
     // This item should already be built, find it within the existing tree
-    _elementWrapper = TestElementWrapper(nodeElement);
+    _elementWrapper = TestElementWrapper<W>(nodeElement);
     _findChildren(nodeElement);
   }
 }
 
-abstract class WidgetTree {
-  TestElementWrapper? _elementWrapper;
+abstract class WidgetTree<W extends Widget> {
+  TestElementWrapper<W>? _elementWrapper;
   final List<WidgetTree> _children = [];
 
   WidgetTree();
@@ -53,7 +52,7 @@ abstract class WidgetTree {
 
   void _add(Element? child) {
     if (child != null) {
-      final WidgetTreeNode tree = WidgetTreeNode(child);
+      final WidgetTreeNode tree = WidgetTreeNode(child, child.widget);
       tree.create();
       _children.add(tree);
     }
@@ -63,29 +62,43 @@ abstract class WidgetTree {
     String searchCriteria, [
     TestElementWrapperCollection? collection,
   ]) {
-    collection ??= TestElementWrapperCollection();
-
-    if (_elementWrapper?.text == searchCriteria) {
-      collection.add(_elementWrapper!);
-    }
-    for (var element in _children) {
-      element.searchText(searchCriteria, collection);
-    }
-
-    return collection;
+    return _search((element) => element?.text == searchCriteria);
   }
 
   TestElementWrapperCollection searchIcon(
     IconData searchCriteria, [
     TestElementWrapperCollection? collection,
   ]) {
+    return _search((element) => element?.iconData == searchCriteria);
+  }
+
+  TestElementWrapperCollection<W> searchType<W extends Widget>([
+    TestElementWrapperCollection<W>? collection,
+  ]) {
+    collection ??= TestElementWrapperCollection<W>();
+
+    if (_elementWrapper?.widget is W) {
+      collection.add(_elementWrapper!.asType<W>());
+    }
+
+    for (var element in _children) {
+      element.searchType<W>(collection);
+    }
+
+    return collection;
+  }
+
+  TestElementWrapperCollection _search<W extends Widget>(
+    bool Function(TestElementWrapper? element) searchMatcher, [
+    TestElementWrapperCollection? collection,
+  ]) {
     collection ??= TestElementWrapperCollection();
 
-    if (_elementWrapper?.iconData == searchCriteria) {
+    if (searchMatcher(_elementWrapper)) {
       collection.add(_elementWrapper!);
     }
     for (var element in _children) {
-      element.searchIcon(searchCriteria, collection);
+      element._search(searchMatcher, collection);
     }
 
     return collection;
