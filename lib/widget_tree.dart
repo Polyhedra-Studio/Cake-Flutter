@@ -6,8 +6,8 @@ import 'package:cake_flutter/flutter_extensions/cake_binding.dart';
 import 'package:cake_flutter/test_element_wrapper.dart';
 import 'package:flutter/material.dart';
 
-class WidgetTreeRoot<W extends Widget> extends WidgetTree<W> {
-  final W rootWidget;
+class WidgetTreeRoot extends WidgetTree {
+  final Widget rootWidget;
   WidgetTreeRoot(this.rootWidget);
 
   Future<void> createRoot(CakeBinding binding) async {
@@ -22,20 +22,20 @@ class WidgetTreeRoot<W extends Widget> extends WidgetTree<W> {
 
 typedef WidgetTreeBuilder = void Function(Element nodeElement);
 
-class WidgetTreeNode<W extends Widget> extends WidgetTree<W> {
+class WidgetTreeNode extends WidgetTree {
   final Element nodeElement;
-  final W widget;
+  final Widget widget;
   WidgetTreeNode(this.nodeElement, this.widget);
 
   void create() {
     // This item should already be built, find it within the existing tree
-    _elementWrapper = TestElementWrapper<W>(nodeElement);
+    _elementWrapper = TestElementWrapper(nodeElement);
     _findChildren(nodeElement);
   }
 }
 
-abstract class WidgetTree<W extends Widget> {
-  TestElementWrapper<W>? _elementWrapper;
+abstract class WidgetTree {
+  TestElementWrapper? _elementWrapper;
   final List<WidgetTree> _children = [];
 
   WidgetTree();
