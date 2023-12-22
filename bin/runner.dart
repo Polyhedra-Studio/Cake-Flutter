@@ -37,10 +37,10 @@ class Runner {
     )
         .map<Future<void>>((file) async {
       final List<String> processArgs = [];
+
       if (runFlutter) {
         processArgs.addAll([
-          'run',
-          '-t',
+          'test',
           file.path,
         ]);
       }
@@ -56,7 +56,11 @@ class Runner {
       Future<ProcessResult> process;
       if (runFlutter) {
         print(processArgs.join(' '));
-        process = Process.run('flutter', processArgs);
+        process = Process.run(
+          'flutter',
+          processArgs,
+          workingDirectory: file.parent.path,
+        );
       } else {
         process = Process.run('dart', processArgs);
       }
