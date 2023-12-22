@@ -1,3 +1,5 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 class TestElementWrapper<W extends Widget> {
@@ -24,7 +26,19 @@ class TestElementWrapper<W extends Widget> {
   }
 
   void tap() {
-    // TODO
+    // Find position to tap
+    final RenderObject? object = element.renderObject;
+
+    // Find center of object
+    if (object is RenderBox) {
+      // Find center of object
+      final Offset center = object.size.center(Offset.zero);
+      final hitTestResult = BoxHitTestResult();
+      if (object.hitTest(hitTestResult, position: center)) {
+        // a descendant of `renderObj` got tapped
+        print(hitTestResult.path);
+      }
+    }
   }
 
   void _parseElement() {

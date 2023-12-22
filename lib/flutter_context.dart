@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cake_flutter/cake_flutter.dart';
 import 'package:cake_flutter/flutter_extensions/cake_binding.dart';
 import 'package:cake_flutter/flutter_test_options.dart';
@@ -16,8 +18,8 @@ class FlutterContext extends Context {
     return _search!;
   }
 
-  CakeBinding? __binding;
-  CakeBinding get binding => __binding ??= CakeBinding(_options);
+  CakeBinding? _binding;
+  CakeBinding get binding => _binding ??= CakeBinding(_options);
   final FlutterTestOptions? _options;
 
   FlutterContext(this._options);
@@ -25,7 +27,7 @@ class FlutterContext extends Context {
   @override
   void copyExtraParams(Context contextToCopy) {
     if (contextToCopy is FlutterContext) {
-      __binding = contextToCopy.binding;
+      _binding = contextToCopy.binding;
       _search = contextToCopy._search;
     }
   }
@@ -34,11 +36,11 @@ class FlutterContext extends Context {
     final WidgetTreeRoot tree = WidgetTreeRoot(app);
     await tree.createRoot(binding);
     _search = Search(tree);
-    return forward();
+    return forward(duration: Duration(seconds: 1));
   }
 
-  Future<void> forward() async {
-    return;
+  Future<void> forward({Duration duration = Duration.zero}) async {
+    return binding.forward(duration: duration);
   }
 
   void pumpWidget() {

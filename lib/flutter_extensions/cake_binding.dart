@@ -40,10 +40,12 @@ class CakeBinding extends BindingBase
     final TestView newRoot = wrapWithDefaultTestView(root, onBuild: onBuild);
     attachTestRootWidget(newRoot, onBuild: onBuild);
     scheduleFrame();
-    await Future.delayed(const Duration(milliseconds: 1));
+    drawFrame();
   }
 
-  Future<void> forward() async {
+  Future<void> forward({Duration duration = Duration.zero}) async {
+    drawFrame();
+    await Future.delayed(duration);
     //     return TestAsyncUtils.guard<void>(() {
     //   assert(inTest);
     //   assert(_clock != null);
