@@ -1,61 +1,46 @@
-// ignore_for_file: invalid_use_of_protected_member
-
-import 'dart:async';
-
-import 'package:cake_flutter/flutter_extensions/cake_binding.dart';
 import 'package:cake_flutter/test_element_wrapper.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-class WidgetTreeRoot extends WidgetTree {
-  final Widget rootWidget;
-  WidgetTreeRoot(this.rootWidget);
+class WidgetTree extends _WidgetTree {
+  final Element _rootElement;
+  WidgetTree(this._rootElement);
 
-  Future<void> createRoot(CakeBinding binding) async {
-    await binding.setRoot(
-      rootWidget,
-      onBuild: (Element nodeElement) {
-        _add(nodeElement);
-      },
-    );
+  void index(WidgetTester tester) {
+    _findChildren(_rootElement, tester);
   }
 }
 
-typedef WidgetTreeBuilder = void Function(Element nodeElement);
-
-class WidgetTreeNode extends WidgetTree {
+class _WidgetTreeNode extends _WidgetTree {
   final Element nodeElement;
-  final Widget widget;
-  WidgetTreeNode(this.nodeElement, this.widget);
+  final int depth;
 
-  void create() {
-    // This item should already be built, find it within the existing tree
-    _elementWrapper = TestElementWrapper(nodeElement);
-    _findChildren(nodeElement);
+  _WidgetTreeNode(this.nodeElement, {required this.depth});
+
+  void create(WidgetTester tester) {
+    _elementWrapper = TestElementWrapper(nodeElement, tester);
+    return _findChildren(nodeElement, tester, depth: depth + 1);
   }
 }
 
-abstract class WidgetTree {
+abstract class _WidgetTree {
   TestElementWrapper? _elementWrapper;
-  final List<WidgetTree> _children = [];
+  final List<_WidgetTreeNode> _children = [];
 
-  WidgetTree();
+  _WidgetTree();
 
-  void _findChildren(Element? element) {
-    print('Finding children for ${element?.widget.runtimeType}');
-
-    element?.visitChildren(
+  void _findChildren(Element element, WidgetTester tester, {int depth = 0}) {
+    element.visitChildren(
       (element) {
-        _add(element);
+        _add(element, tester, depth: depth);
       },
     );
   }
 
-  void _add(Element? child) {
-    if (child != null) {
-      final WidgetTreeNode tree = WidgetTreeNode(child, child.widget);
-      tree.create();
-      _children.add(tree);
-    }
+  void _add(Element child, WidgetTester tester, {int depth = 0}) {
+    final _WidgetTreeNode tree = _WidgetTreeNode(child, depth: depth);
+    tree.create(tester);
+    _children.add(tree);
   }
 
   TestElementWrapperCollection searchText(

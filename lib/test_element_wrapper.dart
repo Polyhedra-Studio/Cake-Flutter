@@ -1,6 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class TestElementWrapper<W extends Widget> {
   final Element element;
@@ -12,7 +12,16 @@ class TestElementWrapper<W extends Widget> {
   IconData? _iconData;
   IconData? get iconData => _iconData;
 
-  TestElementWrapper(this.element) : widget = (element.widget as W) {
+  WidgetTester? __tester;
+  WidgetTester get _tester {
+    if (__tester == null) {
+      throw 'Element is not ready yet. Call setApp() in an async first.';
+    }
+    return __tester!;
+  }
+
+  TestElementWrapper(this.element, this.__tester)
+      : widget = (element.widget as W) {
     _parseElement();
   }
 
@@ -22,22 +31,44 @@ class TestElementWrapper<W extends Widget> {
 
   TestElementWrapper<W2> asType<W2 extends Widget>() {
     assert(widget is W2, 'Converting ${widget.runtimeType} to $W2');
-    return TestElementWrapper<W2>(element);
+    return TestElementWrapper<W2>(element, _tester);
   }
 
-  void tap() {
+  Future<void> tap({bool warnIfMissed = true}) async {
     // Find position to tap
-    final RenderObject? object = element.renderObject;
+    final RenderObject? box = element.renderObject;
 
     // Find center of object
-    if (object is RenderBox) {
+    if (box is RenderBox) {
       // Find center of object
-      final Offset center = object.size.center(Offset.zero);
-      final hitTestResult = BoxHitTestResult();
-      if (object.hitTest(hitTestResult, position: center)) {
-        // a descendant of `renderObj` got tapped
-        print(hitTestResult.path);
+      final Offset location = box.localToGlobal(box.size.center(Offset.zero));
+
+      // Check if this is in the hit box and warn if so
+      if (warnIfMissed) {
+        final HitTestResult result = HitTestResult();
+        _tester.binding.hitTest(result, location);
+        bool found = false;
+        for (final HitTestEntry entry in result.path) {
+          if (entry.target == box) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          final bool outOfBounds =
+              !(Offset.zero & _tester.binding.renderView.size)
+                  .contains(location);
+          if (outOfBounds) {
+            throw '${widget.runtimeType} at $location is outside the bounds of the root of the render tree, ${_tester.binding.renderView.size}.';
+          } else {
+            throw '${widget.runtimeType} at $location was not hit.';
+          }
+        }
       }
+      await _tester.tapAt(location);
+    } else {
+      throw 'Element does not have a render object to tap onto.';
     }
   }
 

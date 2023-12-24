@@ -14,7 +14,9 @@ dependencies:
   flutter_tools:
     sdk: flutter
   cake:
-    version: ^5.1.0
+    version: ^5.5.2
+  flutter_test:
+    sdk: flutter
 
 dev_dependencies:
   polyhedra_lint:

@@ -40,6 +40,23 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
-        }
+        },
+        {
+            "name": "Example - Basic test in debug mode",
+            "cwd": "example",
+            "program": "test/widget.cake.dart",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug"
+        },
+        {
+            "name": "Example - Basic test in debug mode (Flutter)",
+            "cwd": "example",
+            "program": "test/widget.cake.dart",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "templateFor": "test"
+        },
     ]
 }

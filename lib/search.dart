@@ -3,7 +3,7 @@ import 'package:cake_flutter/widget_tree.dart';
 import 'package:flutter/widgets.dart';
 
 class Search {
-  final WidgetTreeRoot _tree;
+  final WidgetTree _tree;
   Search(this._tree);
 
   TestElementWrapper? key(Key key) {
