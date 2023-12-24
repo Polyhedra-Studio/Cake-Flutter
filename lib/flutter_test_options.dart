@@ -1,4 +1,4 @@
-import 'package:cake_flutter/cake_flutter.dart';
+part of '../cake_flutter.dart';
 
 class FlutterTestOptions extends TestOptions {
   const FlutterTestOptions({

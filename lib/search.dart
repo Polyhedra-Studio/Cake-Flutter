@@ -1,6 +1,4 @@
-import 'package:cake_flutter/test_element_wrapper.dart';
-import 'package:cake_flutter/widget_tree.dart';
-import 'package:flutter/widgets.dart';
+part of '../cake_flutter.dart';
 
 class Search {
   final WidgetTree _tree;

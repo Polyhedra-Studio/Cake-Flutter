@@ -1,6 +1,4 @@
-import 'package:cake_flutter/test_element_wrapper.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_test/flutter_test.dart';
+part of '../cake_flutter.dart';
 
 class WidgetTree extends _WidgetTree {
   final Element _rootElement;

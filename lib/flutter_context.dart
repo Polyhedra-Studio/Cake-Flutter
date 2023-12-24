@@ -1,11 +1,4 @@
-import 'dart:async';
-
-import 'package:cake_flutter/cake_flutter.dart';
-import 'package:cake_flutter/flutter_test_options.dart';
-import 'package:cake_flutter/search.dart';
-import 'package:cake_flutter/widget_tree.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_test/flutter_test.dart';
+part of '../cake_flutter.dart';
 
 class FlutterContext extends Context {
   final FlutterTestOptions? options;

@@ -1,81 +1,77 @@
 # Cake
-The tiniest unit tester, built for dart
+The tiniest unit tester, built for Flutter
+(Want just Dart? try [Cake for Dart](https://github.com/Polyhedra-Studio/Cake))
+
+# WARNING: BETA
+- This package is currently in beta. Documentation is scarce, functionality might break, and bugs abound. Proceed at your own risk.
 
 # How to write unit tests
 - Cake will search for anything that has .cake.test for the file name in the directory that it's run in
-- Example of how to write unit tests:
+- Example of how to write unit tests. This is the Cake equivalent of the [template Flutter project test](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/templates/app_test_widget/test/widget_test.dart.tmpl).
 ```dart
-import 'package:cake/expect.dart';
-import 'package:cake/test.dart';
+import 'package:cake_flutter/cake_flutter.dart';
+import 'package:flutter/material.dart';
 
-void main(List<String> arguments) async {
-  TestRunnerDefault('Simple Test Suite', [
-    Test('True is true - shorthand', expected: true, actual: true),
-    Test('True is true - assertion',
+void main() {
+  FlutterTestRunner(
+    'Counter increments smoke test',
+    [
+      Test.skip(
+        'Counter should start at zero',
+        action: (test) => test.index(),
         assertions: (test) => [
-              Expect(ExpectType.equals, expected: true, actual: true),
-            ]),
-    Test(
-      'True is true, set in setup',
-      setup: (context) {
-        context.expected = true;
-        context.actual = true;
-      },
-    ),
-    Test(
-      'True is true, set in action',
-      action: (context) {
-        context.expected = true;
-        context.actual = true;
-      },
-    ),
-  ]);
+          Expect.equals(actual: test.search.text('0').length, expected: 1),
+          Expect.equals(actual: test.search.text('1').length, expected: 0),
+        ],
+      ),
+      Test(
+        'Counter should increment when + is tapped',
+        action: (test) async {
+          test.index();
+          await test.search.icon(Icons.add).first.tap();
+          await test.forward();
+          test.index();
+        },
+        assertions: (test) => [
+          Expect.equals(actual: test.search.text('0').length, expected: 0),
+          Expect.equals(actual: test.search.text('1').length, expected: 1),
+        ],
+      ),
+    ],
+    setup: (test) async {
+      await test.setApp(const MyApp());
+    },
+  );
 }
-```
-
-You can also define a context that can pass variables from parents and test stages.
-
-```dart
-  TestRunner<ExtraContext>('Test Suite with Extra Context', [
-    Group('Can detect Foo', 
-      [
-        Test('Foo is True', assertions: (test) => [
-          Expect.isTrue(test.foo),
-        ]),
-      ],
-      setup: (test) {
-        test.foo = true;
-      },
-    ),
-  ]);
-
-  // ....
-  class ExtraContext extends Context {
-    bool foo = false;
-  }
 ```
 
 
 # Expect Matches
-enum ExpectType {
-  equals,
-  isNotEqual,
-  isNull,
-  isNotNull,
-  isType, **
-  isTrue,
-  isFalse,
-}
+Generic
+  - equals
+  - isEqual *
+  - isNotEqual
+  - isNull
+  - isNotNull
+  - isType **
+  - isTrue
+  - isFalse
 
+* equals and isEqual can be used interchangeably.
 ** isType will need a generic defined or else it will always pass as true as it thinks the type is `dynamic`.
 
-# How to run the test runner
-- The package will need to run globally. Install via this command:
-`dart pub global activate cake --hosted-url http://butterfree.lan:30117`
-- After it's installed, you can run it by using `dart run cake` in the directory that you want to run your tests in. It will search any files in the directory or any sub-folders ending with `cake.dart`.
-- You can also add flags to run specific tests or view output from specific tests.
+Flutter-specific
+  - findMatch
+  - findsOneWidget
+  - findsNothing
+  - findsWidgets
+  - findsNWidgets
+  - findsAtLeastNWidgets
 
-## Flags
+# How to run the test runner
+- Cake-Flutter is bootstrapped onto the existing Flutter tester. Unlike Cake-Dart which can be run independently, these tests need to be run through the native test commands. If you use the `.cake.dart` extension, you will have to run each file separately like so `flutter test widget.cake.dart`
+
+## Flags - Not yet implemented.
 
 ### File name filter
 - `-f [fileName]`

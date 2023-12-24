@@ -1,5 +1,4 @@
-import 'package:cake/cake.dart';
-import 'package:flutter_test/flutter_test.dart';
+part of '../cake_flutter.dart';
 
 class FlutterExpect extends Expect {
   FlutterExpect({
