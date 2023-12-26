@@ -5,15 +5,15 @@ class Search {
   Search(this._tree);
 
   TestElementWrapper? key(Key key) {
-    return null;
-  }
-
-  TestElementWrapperCollection text(String searchText) {
-    return _tree.searchText(searchText);
+    return _tree.searchKey(key);
   }
 
   TestElementWrapperCollection icon(IconData iconData) {
     return _tree.searchIcon(iconData);
+  }
+
+  TestElementWrapperCollection text(String searchText) {
+    return _tree.searchText(searchText);
   }
 
   TestElementWrapperCollection<W> type<W extends Widget>() {

@@ -13,5 +13,6 @@ part 'flutter_expect.dart';
 part 'flutter_test_options.dart';
 part 'flutter_test_runner.dart';
 part 'search.dart';
+part 'test_element_wrapper_collection.dart';
 part 'test_element_wrapper.dart';
 part 'widget_tree.dart';

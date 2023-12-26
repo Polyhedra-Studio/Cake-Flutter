@@ -1,11 +1,16 @@
 part of '../cake_flutter.dart';
 
-class FlutterExpect extends Expect {
+class FlutterExpect<ExpectedType extends Widget> extends Expect<ExpectedType> {
   FlutterExpect({
     required super.actual,
     required super.expected,
   });
 
+  factory FlutterExpect.isWidgetType(TestElementWrapper wrapper) {
+    return _FlutterExpectIsWidgetType<ExpectedType>(wrapper);
+  }
+
+  // --- Finder Matches ---
   factory FlutterExpect.findMatch({
     required Finder find,
     required Matcher match,
@@ -54,7 +59,27 @@ class FlutterExpect extends Expect {
   }
 }
 
-class _FlutterExpectMatcher extends FlutterExpect {
+class _FlutterExpectIsWidgetType<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
+  final TestElementWrapper _wrapper;
+
+  _FlutterExpectIsWidgetType(this._wrapper)
+      : super(actual: null, expected: null);
+
+  @override
+  AssertResult run() {
+    if (_wrapper.widget is ExpectedType) {
+      return AssertPass();
+    } else {
+      return AssertFailure(
+        'IsWidgetType failed: Expected $ExpectedType, got ${_wrapper.widget.runtimeType}.',
+      );
+    }
+  }
+}
+
+class _FlutterExpectMatcher<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
   final Finder finder;
   final Matcher matcher;
   final int? count;

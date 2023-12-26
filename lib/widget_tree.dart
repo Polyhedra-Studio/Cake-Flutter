@@ -5,7 +5,8 @@ class WidgetTree extends _WidgetTree {
   WidgetTree(this._rootElement);
 
   void index(WidgetTester tester) {
-    _findChildren(_rootElement, tester);
+    elementWrapper = TestElementWrapper(_rootElement, tester);
+    _findChildren(tester);
   }
 }
 
@@ -16,19 +17,19 @@ class _WidgetTreeNode extends _WidgetTree {
   _WidgetTreeNode(this.nodeElement, {required this.depth});
 
   void create(WidgetTester tester) {
-    _elementWrapper = TestElementWrapper(nodeElement, tester);
-    return _findChildren(nodeElement, tester, depth: depth + 1);
+    elementWrapper = TestElementWrapper(nodeElement, tester);
+    return _findChildren(tester, depth: depth + 1);
   }
 }
 
 abstract class _WidgetTree {
-  TestElementWrapper? _elementWrapper;
+  late TestElementWrapper elementWrapper;
   final List<_WidgetTreeNode> _children = [];
 
   _WidgetTree();
 
-  void _findChildren(Element element, WidgetTester tester, {int depth = 0}) {
-    element.visitChildren(
+  void _findChildren(WidgetTester tester, {int depth = 0}) {
+    elementWrapper.element.visitChildren(
       (element) {
         _add(element, tester, depth: depth);
       },
@@ -39,19 +40,29 @@ abstract class _WidgetTree {
     final _WidgetTreeNode tree = _WidgetTreeNode(child, depth: depth);
     tree.create(tester);
     _children.add(tree);
+    elementWrapper._addChild(tree.elementWrapper);
   }
 
-  TestElementWrapperCollection searchText(
-    String searchCriteria, [
-    TestElementWrapperCollection? collection,
-  ]) {
+  TestElementWrapper? searchKey(Key searchCriteria) {
+    if (elementWrapper.key == searchCriteria) {
+      return elementWrapper;
+    }
+
+    for (var element in _children) {
+      final result = element.searchKey(searchCriteria);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
+  TestElementWrapperCollection searchText(String searchCriteria) {
     return _search((element) => element?.text == searchCriteria);
   }
 
-  TestElementWrapperCollection searchIcon(
-    IconData searchCriteria, [
-    TestElementWrapperCollection? collection,
-  ]) {
+  TestElementWrapperCollection searchIcon(IconData searchCriteria) {
     return _search((element) => element?.iconData == searchCriteria);
   }
 
@@ -60,8 +71,8 @@ abstract class _WidgetTree {
   ]) {
     collection ??= TestElementWrapperCollection<W>();
 
-    if (_elementWrapper?.widget is W) {
-      collection.add(_elementWrapper!.asType<W>());
+    if (elementWrapper.widget is W) {
+      collection.add(elementWrapper.asType<W>());
     }
 
     for (var element in _children) {
@@ -77,8 +88,8 @@ abstract class _WidgetTree {
   ]) {
     collection ??= TestElementWrapperCollection();
 
-    if (searchMatcher(_elementWrapper)) {
-      collection.add(_elementWrapper!);
+    if (searchMatcher(elementWrapper)) {
+      collection.add(elementWrapper);
     }
     for (var element in _children) {
       element._search(searchMatcher, collection);

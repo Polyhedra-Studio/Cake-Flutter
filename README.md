@@ -61,12 +61,24 @@ Generic
 ** isType will need a generic defined or else it will always pass as true as it thinks the type is `dynamic`.
 
 Flutter-specific
+  - isWidgetType *
   - findMatch
   - findsOneWidget
   - findsNothing
   - findsWidgets
   - findsNWidgets
   - findsAtLeastNWidgets
+
+* isWidgetType will need a generic defined or else it will always pass as true as it thinks the type is `Widget`.
+
+# Search
+Like `find` in test runner, Cake Tester has it's own similar search feature that crawls and indexes the widget tree of your test. Searching requires a bit of processing to index, so you must manually call test.index() first. Once index you can call test.search to search widgets.
+
+Valid search criteria:
+- By Key
+- By Icon
+- By Text
+- By widget type
 
 # How to run the test runner
 - Cake-Flutter is bootstrapped onto the existing Flutter tester. Unlike Cake-Dart which can be run independently, these tests need to be run through the native test commands. If you use the `.cake.dart` extension, you will have to run each file separately like so `flutter test widget.cake.dart`
