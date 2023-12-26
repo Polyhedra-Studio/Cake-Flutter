@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+part of '../cake_flutter.dart';
 
 class IndexOptions {
   /// Outputs to the console a tree of what will be indexed

@@ -52,7 +52,7 @@ class FlutterContext extends Context {
   }
 
   Future<void> setApp(Widget app) async {
-    return bootstrapTester.pumpWidget(app);
+    return TestAsyncUtils.guard(() => bootstrapTester.pumpWidget(app));
   }
 
   void index([IndexOptions? options]) {
@@ -68,8 +68,8 @@ class FlutterContext extends Context {
     _search = Search(tree);
   }
 
-  Future<void> forward({Duration? duration}) async {
-    await bootstrapTester.pump(duration);
+  Future<void> forward({Duration? duration}) {
+    return TestAsyncUtils.guard(() => bootstrapTester.pump(duration));
   }
 }
 
@@ -95,16 +95,20 @@ class FlutterContextController {
       testWidgets(
         title,
         (widgetTester) async {
-          final Completer<void> cakeTestsComplete = Completer<void>();
+          widgetTester.runAsync(() async {
+            final Completer<void> cakeTestsComplete = Completer<void>();
 
-          _onComplete = cakeTestsComplete;
-          completer.complete(
-            FlutterContext._(options: options, tester: widgetTester),
-          );
+            _onComplete = cakeTestsComplete;
+            completer.complete(
+              FlutterContext._(options: options, tester: widgetTester),
+            );
 
-          // Signal to Flutter tester that Cake has completed its tests and
-          // Flutter tester may now begin teardown.
-          await cakeTestsComplete.future;
+            // Signal to Flutter tester that Cake has completed its tests and
+            // Flutter tester may now begin teardown.
+            await cakeTestsComplete.future;
+
+            TestAsyncUtils.verifyAllScopesClosed();
+          });
         },
       );
       return completer.future;

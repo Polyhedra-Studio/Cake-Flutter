@@ -39,7 +39,7 @@ class TestElementWrapper<W extends Widget> {
     return TestElementWrapper<W2>(element, _tester);
   }
 
-  Future<void> tap({bool warnIfMissed = true}) async {
+  Future<void> tap({bool warnIfMissed = true}) {
     // Find position to tap
     final RenderObject? box = element.renderObject;
 
@@ -71,7 +71,7 @@ class TestElementWrapper<W extends Widget> {
           }
         }
       }
-      await _tester.tapAt(location);
+      return TestAsyncUtils.guard(() => _tester.tapAt(location));
     } else {
       throw 'Element does not have a render object to tap onto.';
     }
