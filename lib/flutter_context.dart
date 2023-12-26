@@ -55,12 +55,16 @@ class FlutterContext extends Context {
     return bootstrapTester.pumpWidget(app);
   }
 
-  void index() {
+  void index([IndexOptions? options]) {
     if (bootstrapTester.binding.rootElement == null) {
       throw 'App not initialized or is not ready yet. Call setApp() in an async first.';
     }
-    final WidgetTree tree = WidgetTree(bootstrapTester.binding.rootElement!);
-    tree.index(bootstrapTester);
+    options ??= IndexOptions();
+    final WidgetTree tree = WidgetTree(
+      bootstrapTester.binding.rootElement!,
+      indexOptions: options,
+    );
+    tree.index(options, bootstrapTester);
     _search = Search(tree);
   }
 

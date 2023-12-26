@@ -16,7 +16,7 @@ void main() {
   FlutterTestRunner(
     'Counter increments smoke test',
     [
-      Test.skip(
+      Test(
         'Counter should start at zero',
         action: (test) => test.index(),
         assertions: (test) => [
@@ -72,13 +72,16 @@ Flutter-specific
 * isWidgetType will need a generic defined or else it will always pass as true as it thinks the type is `Widget`.
 
 # Search
-Like `find` in test runner, Cake Tester has it's own similar search feature that crawls and indexes the widget tree of your test. Searching requires a bit of processing to index, so you must manually call test.index() first. Once index you can call test.search to search widgets.
+Like `find` in test runner, Cake Tester has it's own similar search feature that crawls and indexes the widget tree of your test.
 
 Valid search criteria:
 - By Key
 - By Icon
 - By Text
 - By widget type
+
+## Indexing
+Searching requires a bit of processing to index, so you must manually call test.index() first. Once index you can call test.search to search widgets. You can add indexing options to only index certain widgets for better search performance or enable debugging options to print to the console. Remember to turn off any debugging flags before commit code.
 
 # How to run the test runner
 - Cake-Flutter is bootstrapped onto the existing Flutter tester. Unlike Cake-Dart which can be run independently, these tests need to be run through the native test commands. If you use the `.cake.dart` extension, you will have to run each file separately like so `flutter test widget.cake.dart`

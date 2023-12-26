@@ -3,6 +3,7 @@ library cake_flutter;
 import 'dart:async';
 
 import 'package:cake/cake.dart';
+import 'package:cake_flutter/index_options.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
