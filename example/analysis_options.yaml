@@ -1,0 +1,4 @@
+include: package:polyhedra_lints/flutter.yaml
+
+linter:
+  rules:

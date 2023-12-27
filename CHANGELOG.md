@@ -1,3 +1,8 @@
+## 0.3.2 (2023-12-27)
+- [META] Added example folder
+- [META] Updated README.md
+- [META] Cleaned up some testing package files
+
 ## 0.3.1 (2023-12-26)
 - [FIX] Fixed flutter_tester hanging after tests are complete.
 - [MOD] Included IndexOptions to main library.

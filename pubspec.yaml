@@ -1,6 +1,6 @@
 name: cake_flutter
-description: A new Flutter package project.
-version: 0.0.1
+description: The lightweight, explicit testing framework - built for Flutter.
+version: 0.3.2
 homepage: https://github.com/Polyhedra-Studio/Cake-Flutter.git
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
   flutter_tools:
     sdk: flutter
   cake:
-    version: ^5.5.2
+    version: ^6.0.0
   flutter_test:
     sdk: flutter
 
