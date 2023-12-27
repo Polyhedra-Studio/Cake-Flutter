@@ -1,7 +1,6 @@
 import 'package:cake_flutter/cake_flutter.dart';
-import 'package:flutter/material.dart';
-
 import 'package:cake_flutter_example/main.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   FlutterTestRunner(

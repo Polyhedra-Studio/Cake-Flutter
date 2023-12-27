@@ -77,17 +77,17 @@ packages:
     dependency: transitive
     description:
       name: cake
-      sha256: bfef6ad2fc70d918a5ca6910bd74b0d53342a593b171d12c14e1ff50e1c6408f
+      sha256: "9b664f8457a8d4a27bcd55824ef04da3373fee59e40265372117121191462362"
       url: "https://pub.dev"
     source: hosted
-    version: "5.5.2"
+    version: "6.0.0"
   cake_flutter:
     dependency: "direct dev"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.3.2"
   characters:
     dependency: transitive
     description:
