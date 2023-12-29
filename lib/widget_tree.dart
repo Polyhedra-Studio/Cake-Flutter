@@ -95,11 +95,15 @@ abstract class _WidgetTree {
         indexOptions: tree.indexOptions,
       );
       node.create(tester);
-      tree._children.add(node);
-      tree.elementWrapper?._addChild(tree.elementWrapper!);
+      tree.addChild(node);
     } else {
       _findChildren(tree, child, tester);
     }
+  }
+
+  void addChild(_WidgetTreeNode child) {
+    _children.add(child);
+    elementWrapper?._addChild(child.elementWrapper!);
   }
 
   TestElementWrapper? searchKey(Key searchCriteria) {

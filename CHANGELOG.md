@@ -1,3 +1,6 @@
+## 0.3.3 (2023-12-28)
+- [FIX][Search] Fixed children reference for Search not showing up properly when fetched through asType.
+
 ## 0.3.2 (2023-12-27)
 - [META] Added example folder
 - [META] Updated README.md

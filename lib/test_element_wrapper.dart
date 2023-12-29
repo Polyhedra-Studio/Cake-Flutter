@@ -22,21 +22,24 @@ class TestElementWrapper<W extends Widget> {
     return __tester!;
   }
 
-  final TestElementWrapperCollection _children = TestElementWrapperCollection();
+  final TestElementWrapperCollection _children;
   TestElementWrapperCollection get children => _children;
 
-  TestElementWrapper(this.element, this.__tester)
-      : widget = (element.widget as W) {
+  TestElementWrapper(this.element, this.__tester,
+      {TestElementWrapperCollection? children})
+      : widget = (element.widget as W),
+        _children = children ?? TestElementWrapperCollection() {
     _parseElement();
   }
 
   TestElementWrapper.empty()
       : widget = Container() as W,
-        element = StatelessElement(Container());
+        element = StatelessElement(Container()),
+        _children = TestElementWrapperCollection<W>();
 
   TestElementWrapper<W2> asType<W2 extends Widget>() {
     assert(widget is W2, 'Converting ${widget.runtimeType} to $W2');
-    return TestElementWrapper<W2>(element, _tester);
+    return TestElementWrapper<W2>(element, _tester, children: _children);
   }
 
   Future<void> tap({bool warnIfMissed = true}) {
