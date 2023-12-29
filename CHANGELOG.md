@@ -1,3 +1,6 @@
+## 0.3.4 (2023-12-29)
+- [PKG] Updated Cake to 6.0.1, enabling filtering flags to be used in the CLI.
+
 ## 0.3.3 (2023-12-28)
 - [FIX][Search] Fixed children reference for Search not showing up properly when fetched through asType.
 

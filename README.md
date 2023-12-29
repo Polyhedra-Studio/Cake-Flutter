@@ -165,7 +165,7 @@ Flutter-specific
 
 * isWidgetType will need a generic defined or else it will always pass as true as it thinks the type is `Widget`.
 
-## Flags - Not yet implemented.
+## Flags
 
 ### File name filter
 - `-f [fileName]`
