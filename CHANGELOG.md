@@ -1,3 +1,12 @@
+## 0.4.0 (2023-12-30)
+- [ADD][Search] Added tap() action as a shortcut for .first.tap()
+- [ADD][Expect] Added expects: searchHasNone, searchHasOne, searchHasSome that searches for a number of widgets that works similar to the find matchers.
+- [MOD][Search] Search can now be run without indexing first - it will run with full search tree, which while not ideal, might help with quick and dirty tests.
+- [ADD][Search] Added indexing by Key.
+- [ADD] Error widgets that appear will not be reported when indexed. This can be ignored through IndexOptions.
+- [ADD] Added options to setApp that includes: Scaffold, MaterialApp, Directionality, and ThemeData.
+- [ADD][Search] Added reference to widget when searching a group by type
+
 ## 0.3.4 (2023-12-29)
 - [PKG] Updated Cake to 6.0.1, enabling filtering flags to be used in the CLI.
 

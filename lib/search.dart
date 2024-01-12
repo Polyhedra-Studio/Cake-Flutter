@@ -4,7 +4,7 @@ class Search {
   final WidgetTree _tree;
   Search(this._tree);
 
-  TestElementWrapper? key(Key key) {
+  TestElementWrapperCollection key(Key key) {
     return _tree.searchKey(key);
   }
 

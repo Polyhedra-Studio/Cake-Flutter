@@ -1,7 +1,7 @@
 part of '../cake_flutter.dart';
 
 class TestElementWrapperCollection<W extends Widget>
-    implements Iterable<TestElementWrapper<W>> {
+    implements Iterable<TestElementWrapper<W>>, TestElementActions {
   final List<TestElementWrapper<W>> elements = [];
 
   TestElementWrapperCollection();
@@ -10,6 +10,157 @@ class TestElementWrapperCollection<W extends Widget>
     elements.add(element);
   }
 
+  W get widget {
+    return elements.first.widget;
+  }
+
+  /// Taps on the first element in the collection.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> tap({bool warnIfMissed = true, bool warnIfInvalid = true}) {
+    if (elements.isEmpty) {
+      return _throwMessage(
+        'Cannot tap on a widget that does not exist.',
+        warnIfInvalid: warnIfInvalid,
+      );
+    }
+
+    return elements.first
+        .tap(warnIfMissed: warnIfMissed, warnIfInvalid: warnIfInvalid);
+  }
+
+  /// Enters text on the first element in the collection.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> enterText(String text, {bool warnIfInvalid = true}) {
+    if (elements.isEmpty) {
+      _throwMessage('Cannot enter text on a widget that does not exist.');
+    }
+    return elements.first.enterText(text, warnIfInvalid: warnIfInvalid);
+  }
+
+  /// Focuses on the first element in the collection.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> focus({bool warnIfInvalid = true}) {
+    if (elements.isEmpty) {
+      return _throwMessage('Cannot focus on a widget that does not exist.');
+    }
+    return elements.first.focus(warnIfInvalid: warnIfInvalid);
+  }
+
+  /// Dismisses the first element in the collection.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> dismiss({bool warnIfInvalid = true}) {
+    if (elements.isEmpty) {
+      return _throwMessage('Cannot dismiss a widget that does not exist.');
+    }
+    return elements.first.dismiss(warnIfInvalid: warnIfInvalid);
+  }
+
+  /// Swipes on the first element from one edge to the other.
+  ///
+  /// [SwipeDirection.Up] will start from the center bottom and go up.
+  /// [SwipeDirection.Down] will start from the center top and go down.
+  /// [SwipeDirection.Left] will start from the center right and go left.
+  /// [SwipeDirection.Right] will start from the center left and go right.
+  /// [duration] is the time taken to complete the swipe.
+  ///
+  /// For more control over swipe directions, use [swipeCustom].
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> swipe(
+    SwipeDirection direction, {
+    Duration duration = Duration.zero,
+    bool warnIfInvalid = true,
+  }) {
+    if (elements.isEmpty) {
+      return _throwMessage(
+        'Cannot swipe on a widget that does not exist.',
+        warnIfInvalid: warnIfInvalid,
+      );
+    }
+
+    return elements.first
+        .swipe(direction, duration: duration, warnIfInvalid: warnIfInvalid);
+  }
+
+  /// Swipes on the first element.
+  ///
+  /// [start] and [end] offsets are relative to the top left corner of the
+  /// element.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<void> swipeCustom({
+    required Offset start,
+    required Offset end,
+    Duration duration = Duration.zero,
+    bool warnIfInvalid = true,
+  }) {
+    if (elements.isEmpty) {
+      return _throwMessage(
+        'Cannot swipe on a widget that does not exist.',
+        warnIfInvalid: warnIfInvalid,
+      );
+    }
+
+    return elements.first.swipeCustom(
+      start: start,
+      end: end,
+      duration: duration,
+      warnIfInvalid: warnIfInvalid,
+    );
+  }
+
+  /// Checks if the first element in the collection has the given type,
+  /// subclasses included.
+  ///
+  /// Not to be confused with [hasType], which checks if one of the widgets
+  /// in the collection has the given type.
+  /// If the collection is empty, returns false. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  bool hasChildOfType<T extends Widget>() {
+    if (elements.isEmpty) {
+      return false;
+    }
+    return elements.first.hasChildOfType<T>();
+  }
+
+  /// Checks if any element in the collection is the given type,
+  /// subclasses included.
+  bool hasType<T extends Widget>() {
+    if (elements.isEmpty) {
+      return false;
+    }
+    return elements.any(
+      (element) => element.widget is T,
+    );
+  }
+
+  Future<void> _throwMessage(String message, {bool warnIfInvalid = true}) {
+    if (warnIfInvalid) {
+      const String mutedMessage =
+          '\nIf this action is intentional, mute this message from the "warnIfMissed" flag.';
+      throw '$message$mutedMessage';
+    }
+    return Future.value();
+  }
+
+  // ----- Iterable Overrides -----
   @override
   TestElementWrapper<W> get first {
     if (elements.isNotEmpty) {

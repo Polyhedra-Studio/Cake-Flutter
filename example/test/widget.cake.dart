@@ -30,7 +30,7 @@ void main() {
       await test.setApp(const MyApp());
       test.index(IndexOptions(
         debugTypeFilter: IndexOptions.defaultSearchTypes,
-        indexFilter: IndexOptions.defaultSearchTypes,
+        indexTypes: IndexOptions.defaultSearchTypes,
       ));
     },
     options: FlutterTestOptions(

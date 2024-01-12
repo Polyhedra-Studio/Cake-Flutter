@@ -1,6 +1,6 @@
 name: cake_flutter
 description: The lightweight, explicit testing framework - built for Flutter.
-version: 0.3.3
+version: 0.4.0
 homepage: https://github.com/Polyhedra-Studio/Cake-Flutter.git
 
 environment:

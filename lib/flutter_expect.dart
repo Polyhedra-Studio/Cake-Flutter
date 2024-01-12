@@ -10,6 +10,32 @@ class FlutterExpect<ExpectedType extends Widget> extends Expect<ExpectedType> {
     return _FlutterExpectIsWidgetType<ExpectedType>(wrapper);
   }
 
+  // --- Search Matches ---
+  factory FlutterExpect.searchHasNone(
+    TestElementWrapperCollection searchResults,
+  ) {
+    return _FlutterExpectSearchIsEmpty(searchResults: searchResults);
+  }
+
+  factory FlutterExpect.searchHasOne(
+    TestElementWrapperCollection searchResults,
+  ) {
+    return _FlutterExpectSearchHasOne(searchResults: searchResults);
+  }
+
+  factory FlutterExpect.searchHasSome(
+    TestElementWrapperCollection searchResults,
+  ) {
+    return _FlutterExpectSearchHasSome(searchResults: searchResults);
+  }
+
+  factory FlutterExpect.searchHasN(
+    TestElementWrapperCollection searchResults, {
+    required int n,
+  }) {
+    return _FlutterExpectSearchHasN(searchResults: searchResults, n: n);
+  }
+
   // --- Finder Matches ---
   factory FlutterExpect.findMatch({
     required Finder find,
@@ -73,6 +99,83 @@ class _FlutterExpectIsWidgetType<ExpectedType extends Widget>
     } else {
       return AssertFailure(
         'IsWidgetType failed: Expected $ExpectedType, got ${_wrapper.widget.runtimeType}.',
+      );
+    }
+  }
+}
+
+class _FlutterExpectSearchIsEmpty<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
+  final TestElementWrapperCollection searchResults;
+
+  _FlutterExpectSearchIsEmpty({required this.searchResults})
+      : super(actual: null, expected: null);
+
+  @override
+  AssertResult run() {
+    if (searchResults.isEmpty) {
+      return AssertPass();
+    } else {
+      return AssertFailure(
+        'HasNone failed: Found ${searchResults.length} widgets.',
+      );
+    }
+  }
+}
+
+class _FlutterExpectSearchHasOne<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
+  final TestElementWrapperCollection searchResults;
+
+  _FlutterExpectSearchHasOne({required this.searchResults})
+      : super(actual: null, expected: null);
+
+  @override
+  AssertResult run() {
+    if (searchResults.length == 1) {
+      return AssertPass();
+    } else {
+      return AssertFailure(
+        'HasOne failed: Found ${searchResults.length} widgets.',
+      );
+    }
+  }
+}
+
+class _FlutterExpectSearchHasSome<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
+  final TestElementWrapperCollection searchResults;
+
+  _FlutterExpectSearchHasSome({required this.searchResults})
+      : super(actual: null, expected: null);
+
+  @override
+  AssertResult run() {
+    if (searchResults.isNotEmpty) {
+      return AssertPass();
+    } else {
+      return AssertFailure(
+        'HasSome failed: Found no widgets.',
+      );
+    }
+  }
+}
+
+class _FlutterExpectSearchHasN<ExpectedType extends Widget>
+    extends FlutterExpect<ExpectedType> {
+  final TestElementWrapperCollection searchResults;
+  final int n;
+
+  _FlutterExpectSearchHasN({required this.searchResults, required this.n})
+      : super(actual: null, expected: null);
+
+  @override
+  AssertResult run() {
+    if (searchResults.length == n) {
+      return AssertPass();
+    } else {
+      return AssertFailure(
+        'HasN failed: Found ${searchResults.length} widgets, expected $n.',
       );
     }
   }

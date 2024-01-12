@@ -86,6 +86,8 @@ abstract class _WidgetTree {
     WidgetTester tester, {
     int debugDepth = 0,
   }) {
+    tree.indexOptions.checkForErrorWidgets(child);
+
     if (tree.parentMatchesIndexFilter ||
         tree.indexOptions.matchesIndexFilter(child)) {
       final _WidgetTreeNode node = _WidgetTreeNode(
@@ -106,19 +108,8 @@ abstract class _WidgetTree {
     elementWrapper?._addChild(child.elementWrapper!);
   }
 
-  TestElementWrapper? searchKey(Key searchCriteria) {
-    if (elementWrapper?.key == searchCriteria) {
-      return elementWrapper;
-    }
-
-    for (var element in _children) {
-      final result = element.searchKey(searchCriteria);
-      if (result != null) {
-        return result;
-      }
-    }
-
-    return null;
+  TestElementWrapperCollection searchKey(Key searchCriteria) {
+    return _search((element) => element?.key == searchCriteria);
   }
 
   TestElementWrapperCollection searchText(String searchCriteria) {
@@ -132,11 +123,6 @@ abstract class _WidgetTree {
   TestElementWrapperCollection<W> searchType<W extends Widget>([
     TestElementWrapperCollection<W>? collection,
   ]) {
-    // Ensure that this type was indexed in the first place
-    if (!indexOptions.hasIndexedType<W>()) {
-      throw '$W has not been indexed! Searching by type will fail without it.\nEither add WidgetType<$W>() to indexFilter or remove all filters.\n';
-    }
-
     collection ??= TestElementWrapperCollection<W>();
 
     if (elementWrapper?.widget is W) {

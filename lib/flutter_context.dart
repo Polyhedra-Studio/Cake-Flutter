@@ -7,10 +7,10 @@ class FlutterContext extends Context {
 
   /// Returns the [Search] instance.
   ///
-  /// Throws an exception if [index] has not been called before accessing [search].
+  /// Will setup an index with no filters if not set yet.
   Search get search {
     if (_search == null) {
-      throw 'In order to utilize search, please call index() first.';
+      _index(IndexOptions());
     }
 
     return _search!;
@@ -51,7 +51,60 @@ class FlutterContext extends Context {
     }
   }
 
-  Future<void> setApp(Widget app) async {
+  /// Set the entrypoint to test in. Extra arguments are included for common
+  /// widget wrappers, such as [Directionality], [Theme], [Scaffold], and [MaterialApp].
+  ///
+  /// If [textDirection] is provided, the widget will be wrapped in a
+  /// [Directionality] widget.
+  /// If [themeData] is provided, the widget will be wrapped in a
+  /// [Theme] widget or included in MaterialApp if added.
+  /// If [includeScaffold] is turned on, the widget will be wrapped in a simple
+  /// [Scaffold] widget and [MaterialApp]. (CupertinoApp if [includeCupertinoApp]
+  /// is turned on)
+  /// If [includeMaterialApp] is turned on, the widget will be wrapped in a
+  /// [MaterialApp] widget, with the widget set as [MaterialApp.home].
+  Future<void> setApp(
+    Widget root, {
+    TextDirection? textDirection,
+    ThemeData? theme,
+    bool includeScaffold = false,
+    bool includeMaterialApp = false,
+  }) async {
+    Widget app = root;
+    // RTL is not the default, so this should be set regardless of other flags.
+    if (textDirection == TextDirection.rtl) {
+      app = Directionality(textDirection: TextDirection.rtl, child: app);
+    }
+
+    // LTR is the default, so Material and Cupertino already do this.
+    if (textDirection == TextDirection.ltr && !includeMaterialApp) {
+      app = Directionality(textDirection: TextDirection.ltr, child: app);
+    }
+
+    if (theme != null && !includeMaterialApp) {
+      app = Theme(data: theme, child: app);
+    }
+
+    if (includeScaffold) {
+      app = Scaffold(body: app);
+
+      if (!includeMaterialApp) {
+        // Scaffold needs a root App base in order to work
+        app = MaterialApp(
+          home: app,
+          theme: theme,
+        );
+      }
+    }
+
+    // Base Material or Cupertino app
+    if (includeMaterialApp) {
+      app = MaterialApp(
+        home: app,
+        theme: theme,
+      );
+    }
+
     return TestAsyncUtils.guard(() => bootstrapTester.pumpWidget(app));
   }
 
@@ -60,6 +113,10 @@ class FlutterContext extends Context {
       throw 'App not initialized or is not ready yet. Call setApp() in an async first.';
     }
     options ??= IndexOptions();
+    _index(options);
+  }
+
+  void _index(IndexOptions options) {
     final WidgetTree tree = WidgetTree(
       bootstrapTester.binding.rootElement!,
       indexOptions: options,

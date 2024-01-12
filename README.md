@@ -156,6 +156,10 @@ Generic
 
 Flutter-specific
   - isWidgetType *
+  - searchHasNone
+  - searchHasOne
+  - searchHasSome
+  - searchHasN
   - findMatch
   - findsOneWidget
   - findsNothing
