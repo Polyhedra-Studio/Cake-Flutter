@@ -58,6 +58,8 @@ class FlutterContext extends Context {
   /// [Directionality] widget.
   /// If [themeData] is provided, the widget will be wrapped in a
   /// [Theme] widget or included in MaterialApp if added.
+  /// If [locale] is provided, the widget will be wrapped in a
+  /// [Localizations] widget with default delegates (unless specified).
   /// If [includeScaffold] is turned on, the widget will be wrapped in a simple
   /// [Scaffold] widget and [MaterialApp]. (CupertinoApp if [includeCupertinoApp]
   /// is turned on)
@@ -67,10 +69,23 @@ class FlutterContext extends Context {
     Widget root, {
     TextDirection? textDirection,
     ThemeData? theme,
+    Locale? locale,
+    List<LocalizationsDelegate>? delegates,
     bool includeScaffold = false,
     bool includeMaterialApp = false,
   }) async {
     Widget app = root;
+
+    // Set delegates if locale is used and vice-versa
+    if (locale != null && delegates == null) {
+      delegates = <LocalizationsDelegate>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+    } else if (locale == null && delegates != null) {
+      locale = const Locale('en', 'US');
+    }
+
     // RTL is not the default, so this should be set regardless of other flags.
     if (textDirection == TextDirection.rtl) {
       app = Directionality(textDirection: TextDirection.rtl, child: app);
@@ -85,6 +100,14 @@ class FlutterContext extends Context {
       app = Theme(data: theme, child: app);
     }
 
+    if ((locale != null && delegates != null) && !includeMaterialApp) {
+      app = Localizations(
+        locale: locale,
+        delegates: delegates,
+        child: app,
+      );
+    }
+
     if (includeScaffold) {
       app = Scaffold(body: app);
 
@@ -93,6 +116,8 @@ class FlutterContext extends Context {
         app = MaterialApp(
           home: app,
           theme: theme,
+          locale: locale,
+          localizationsDelegates: delegates,
         );
       }
     }
@@ -102,6 +127,8 @@ class FlutterContext extends Context {
       app = MaterialApp(
         home: app,
         theme: theme,
+        locale: locale,
+        localizationsDelegates: delegates,
       );
     }
 

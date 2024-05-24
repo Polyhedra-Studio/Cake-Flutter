@@ -1,3 +1,6 @@
+## 0.5.0 (2024-05-24)
+- [ADD] Added options to setApp that includes Localization data
+
 ## 0.4.0 (2023-12-30)
 - [ADD][Search] Added tap() action as a shortcut for .first.tap()
 - [ADD][Expect] Added expects: searchHasNone, searchHasOne, searchHasSome that searches for a number of widgets that works similar to the find matchers.
