@@ -5,6 +5,10 @@ class IndexOptions {
   /// You can specify which types should be indexed with [debugTypeFilter]
   final bool debugTree;
 
+  /// Outputs to the console a simple view of keys, text and semantic labels
+  /// for each widget
+  final bool debugContents;
+
   /// Only output to the tree these types and their children
   /// Must have debug tree flag on to work
   final List<WidgetType> debugTypeFilter;
@@ -35,12 +39,18 @@ class IndexOptions {
   /// to allow the search to continue.
   final bool warnOnErrorWidgets;
 
+  /// By default, only the widget set in setApp will be indexed. This can be
+  /// disabled to allow the search to index the entire tree.
+  final bool includeSetupWidgets;
+
   IndexOptions({
     this.debugTree = false,
+    this.debugContents = false,
     this.debugTypeFilter = const [],
     this.indexTypes = const [],
     this.indexKeys = const [],
     this.warnOnErrorWidgets = true,
+    this.includeSetupWidgets = false,
   });
 
   void checkForErrorWidgets(Element element) {
@@ -76,7 +86,7 @@ class IndexOptions {
   }
 
   bool matchesDebugFilter(Element element) {
-    if (debugTree == false) {
+    if (debugTree == false && debugContents == false) {
       return false;
     }
 

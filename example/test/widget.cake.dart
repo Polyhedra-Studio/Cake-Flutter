@@ -28,12 +28,12 @@ void main() {
     ],
     setup: (test) async {
       await test.setApp(const MyApp());
-      test.index(IndexOptions(
+      test.index(
         debugTypeFilter: IndexOptions.defaultSearchTypes,
         indexTypes: IndexOptions.defaultSearchTypes,
-      ));
+      );
     },
-    options: FlutterTestOptions(
+    options: const FlutterTestOptions(
       failOnFirstExpect: false,
     ),
   );
