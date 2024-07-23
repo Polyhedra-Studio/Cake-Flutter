@@ -9,6 +9,9 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
   Key? _key;
   Key? get key => _key;
 
+  String? _keyText;
+  String? get keyText => _keyText;
+
   String? _text;
   String? get text => _text;
 
@@ -94,7 +97,9 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
             );
           } else {
             return _throwMessage(
-              '$displayName at $location was not hit.',
+              '''
+$displayName at $location was not hit. Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+''',
               warnIfInvalid: warnIfInvalid,
             );
           }
@@ -236,6 +241,10 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
   void _parseElement() {
     if (element.widget.key != null) {
       _key = element.widget.key;
+
+      if (element.widget.key is ValueKey<String>) {
+        _keyText = (element.widget.key as ValueKey<String>).value;
+      }
     }
 
     if (widget is Text) {

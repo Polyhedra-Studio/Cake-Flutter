@@ -1,5 +1,18 @@
+## 0.6.0 (2024-07-20)
+- [BREAKING][Index] IndexOptions are now expanded in the test.index() parameters.
+- [BREAKING][Search] By default, search will only index the widget being called by setApp. To revert to the old behavior of indexing the entire widget tree, turn on includeSetupWidgets in IndexOptions. This might be needed if you are searching for something that fires off of the scaffold widget, such as dialogs and snack bars.
+- [MOD][Setup] setApp now sets the child of the RootWidget class and maintains scaffolding data between tests to help with performance and consistency between tests. 
+- [FIX][Setup] setApp can now be safely be called between sibling tests without having to worry about states being shared.
+- [ADD][Context] Added test.clear() function, which will completely clear out the root widget. In theory, this shouldn't be needed since setApp should be fully replacing the old child, but this can help if the application is in a stuck state.
+- [ADD][Context] Added a test.next() function to go with test.forward(). This would be the same as calling pumpAndSettle, which waits until all animations and frames are done loading.
+- [PKG] Updated to Cake 6.1.0, which includes new meta information about the current test attached to the context.
+- [ADD][Debug] Added the debugContents option, which will print out any keys and text in a similar nested format to debugTree. For clarity, if both debugContents and debugTree is on, debugContents will print after debugTree. DebugContents will also respect the same debug filters debugTree uses. This functionality may be expanded in the future to other widgets.
+- [ADD][Search] Added .keyText() to search for the string contents of a key. Good for when you do not have a direct reference to the key available.
+- [ADD][Setup] Added index option to setApp() automatically index without any options after setting the root app. Meant to be used for shorthand for simple tests, but is turned off by default.
+- [ADD][Setup] Added indexOptions to setApp() to automatically index with given options after setting the root app. Meant to be used for shorthand. Ignores index if set.
+
 ## 0.5.0 (2024-05-24)
-- [ADD] Added options to setApp that includes Localization data
+- [ADD][Setup] Added options to setApp that includes Localization data
 
 ## 0.4.0 (2023-12-30)
 - [ADD][Search] Added tap() action as a shortcut for .first.tap()
@@ -7,7 +20,7 @@
 - [MOD][Search] Search can now be run without indexing first - it will run with full search tree, which while not ideal, might help with quick and dirty tests.
 - [ADD][Search] Added indexing by Key.
 - [ADD] Error widgets that appear will not be reported when indexed. This can be ignored through IndexOptions.
-- [ADD] Added options to setApp that includes: Scaffold, MaterialApp, Directionality, and ThemeData.
+- [ADD][Setup] Added options to setApp that includes: Scaffold, MaterialApp, Directionality, and ThemeData.
 - [ADD][Search] Added reference to widget when searching a group by type
 
 ## 0.3.4 (2023-12-29)

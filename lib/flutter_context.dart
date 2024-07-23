@@ -4,6 +4,8 @@ class FlutterContext extends Context {
   final FlutterTestOptions? options;
   Search? _search;
   WidgetTester? _bootstrapTester;
+  RootWidget? _root;
+  String? _rootKey;
 
   /// Returns the [Search] instance.
   ///
@@ -41,13 +43,16 @@ class FlutterContext extends Context {
   FlutterContext._({
     required this.options,
     required WidgetTester tester,
-  }) : _bootstrapTester = tester;
+  })  : _bootstrapTester = tester,
+        _root = RootWidget();
 
   @override
   void copyExtraParams(Context contextToCopyFrom) {
     if (contextToCopyFrom is FlutterContext) {
       _bootstrapTester = contextToCopyFrom._bootstrapTester;
       _search = contextToCopyFrom._search;
+      _root = contextToCopyFrom._root;
+      _rootKey = contextToCopyFrom._rootKey;
     }
   }
 
@@ -65,6 +70,8 @@ class FlutterContext extends Context {
   /// is turned on)
   /// If [includeMaterialApp] is turned on, the widget will be wrapped in a
   /// [MaterialApp] widget, with the widget set as [MaterialApp.home].
+  ///
+  ///
   Future<void> setApp(
     Widget root, {
     TextDirection? textDirection,
@@ -73,87 +80,153 @@ class FlutterContext extends Context {
     List<LocalizationsDelegate>? delegates,
     bool includeScaffold = false,
     bool includeMaterialApp = false,
+
+    /// When true, .index() without arguments will be called after setApp() is
+    /// called.
+    bool index = false,
+
+    /// When set, .index() will be called with the given options.
+    IndexOptions? indexOptions,
   }) async {
-    Widget app = root;
+    final SetupSettings settings = SetupSettings(
+      textDirection: textDirection,
+      theme: theme,
+      locale: locale,
+      delegates: delegates,
+      includeScaffold: includeScaffold,
+      includeMaterialApp: includeMaterialApp,
+    );
 
-    // Set delegates if locale is used and vice-versa
-    if (locale != null && delegates == null) {
-      delegates = <LocalizationsDelegate>[
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
-    } else if (locale == null && delegates != null) {
-      locale = const Locale('en', 'US');
+    final bool active = _root!.isActive;
+    _rootKey = '$contextualType: $title';
+    _root!.setRoot(root, settings: settings, keyName: _rootKey);
+    if (!active) {
+      await TestAsyncUtils.guard(() => bootstrapTester.pumpWidget(_root!));
     }
+    await next();
 
-    // RTL is not the default, so this should be set regardless of other flags.
-    if (textDirection == TextDirection.rtl) {
-      app = Directionality(textDirection: TextDirection.rtl, child: app);
+    if (index || indexOptions != null) {
+      this.index(options: indexOptions ?? IndexOptions());
     }
-
-    // LTR is the default, so Material and Cupertino already do this.
-    if (textDirection == TextDirection.ltr && !includeMaterialApp) {
-      app = Directionality(textDirection: TextDirection.ltr, child: app);
-    }
-
-    if (theme != null && !includeMaterialApp) {
-      app = Theme(data: theme, child: app);
-    }
-
-    if ((locale != null && delegates != null) && !includeMaterialApp) {
-      app = Localizations(
-        locale: locale,
-        delegates: delegates,
-        child: app,
-      );
-    }
-
-    if (includeScaffold) {
-      app = Scaffold(body: app);
-
-      if (!includeMaterialApp) {
-        // Scaffold needs a root App base in order to work
-        app = MaterialApp(
-          home: app,
-          theme: theme,
-          locale: locale,
-          localizationsDelegates: delegates,
-        );
-      }
-    }
-
-    // Base Material or Cupertino app
-    if (includeMaterialApp) {
-      app = MaterialApp(
-        home: app,
-        theme: theme,
-        locale: locale,
-        localizationsDelegates: delegates,
-      );
-    }
-
-    return TestAsyncUtils.guard(() => bootstrapTester.pumpWidget(app));
   }
 
-  void index([IndexOptions? options]) {
-    if (bootstrapTester.binding.rootElement == null) {
+  /// Index the current widget tree with several different options. Leave blank
+  /// to index from the given root element, down.
+  ///
+  /// To include all widgets in the tree, set [includeSetupWidgets] to true.
+  /// This may be helpful when trying to index objects called an automatically
+  /// generated on the scaffold, for example.
+  ///
+  /// If a widget is large and complex, it is recommended to add specific
+  /// filters with [indexKeys] and [indexTypes] to limit the amount of data indexed.
+  ///
+  /// Several options also help with debugging the indexed contents, such as
+  /// [debugTree] and [debugContents].
+  ///
+  void index({
+    /// Outputs to the console a tree of what will be indexed
+    /// You can specify which types should be indexed with [debugTypeFilter]
+    bool debugTree = false,
+
+    /// Outputs to the console a simple view of keys, text and semantic labels
+    /// for each widget
+    bool debugContents = false,
+
+    /// Only output to the tree these types and their children
+    /// Must have debug tree flag on to work
+    List<WidgetType> debugTypeFilter = const [],
+
+    /// Only index these types and their children.
+    ///
+    /// Note [indexKeys] ignores types that do not match.
+    /// Recommended to help with performance since searching will be faster.
+    /// However double check that this list is correct as it will cause tests to
+    /// fail if trying to search for a non-indexed type.
+    List<WidgetType> indexTypes = const [],
+
+    /// Only index these widgets and their children. Ignores [indexTypes] if
+    /// the type does not match.
+    ///
+    /// Recommended to help with performance
+    /// since searching will be faster. However double check that this list is correct
+    /// as it will cause tests to fail if trying to search for a non-indexed type.
+    List<Key> indexKeys = const [],
+
+    /// By default, Error Widgets will throw when found. This can be disabled
+    /// to allow the search to continue.
+    bool warnOnErrorWidgets = true,
+
+    /// By default, only the widget set in setApp will be indexed. This can be
+    /// disabled to allow the search to index the entire tree.
+    ///
+    /// If setup includes scaffold or app widgets, it is recommended to include
+    /// filters as the base app has a lot of widgets included.
+    bool includeSetupWidgets = false,
+    IndexOptions? options,
+  }) {
+    if (_root?.isActive == false) {
       throw 'App not initialized or is not ready yet. Call setApp() in an async first.';
     }
-    options ??= IndexOptions();
+
+    // Map options to IndexOptions
+    final IndexOptions options = IndexOptions(
+      debugTree: debugTree,
+      debugContents: debugContents,
+      debugTypeFilter: debugTypeFilter,
+      indexTypes: indexTypes,
+      indexKeys: indexKeys,
+      warnOnErrorWidgets: warnOnErrorWidgets,
+      includeSetupWidgets: includeSetupWidgets,
+    );
     _index(options);
   }
 
   void _index(IndexOptions options) {
+    if (_rootKey == null) {
+      throw 'App not initialized or is not ready yet. Call setApp() in an async first.';
+    }
+
+    Element rootElement;
+    if (options.includeSetupWidgets) {
+      rootElement = bootstrapTester.binding.rootElement!;
+    } else {
+      try {
+        rootElement = bootstrapTester.firstElement(find.byKey(Key(_rootKey!)));
+      } catch (e) {
+        throw 'Failed to find root element: $_rootKey';
+      }
+    }
+
     final WidgetTree tree = WidgetTree(
-      bootstrapTester.binding.rootElement!,
+      rootElement,
       indexOptions: options,
     );
     tree.index(options, bootstrapTester);
     _search = Search(tree);
   }
 
+  /// Move forward the test environment to the next frame.
+  /// This may not be enough for some use cases, such as animations. If needed,
+  /// considering using [continue] instead.
+  ///
+  /// Equivalent to `pump` on the [WidgetTester]
   Future<void> forward({Duration? duration}) {
     return TestAsyncUtils.guard(() => bootstrapTester.pump(duration));
+  }
+
+  /// Continue the test environment to the next complete frame. Use this if
+  /// [forward] is not enough.
+  ///
+  /// Equivalent to `pumpAndSettle` on the [WidgetTester]
+  Future<void> next({Duration duration = const Duration(milliseconds: 100)}) {
+    return TestAsyncUtils.guard(() => bootstrapTester.pumpAndSettle(duration));
+  }
+
+  /// Reset the test environment to a blank state. Use if [setApp] is not
+  /// enough to reset the environment.
+  Future<void> reset() async {
+    _root!.clear();
+    return next();
   }
 }
 

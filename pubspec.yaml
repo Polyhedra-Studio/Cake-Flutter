@@ -15,7 +15,8 @@ dependencies:
   flutter_tools:
     sdk: flutter
   cake:
-    version: ^6.0.1
+  #  version: ^6.0.1
+    path: ../Cake-Dart
   flutter_test:
     sdk: flutter
 

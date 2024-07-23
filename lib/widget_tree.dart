@@ -9,11 +9,24 @@ class WidgetTree extends _WidgetTree {
     if (indexOptions.matchesIndexFilter(_rootElement)) {
       parentMatchesIndexFilter = true;
     }
+
+    if (indexOptions.debugContents) {
+      debugContents = [];
+    }
+
     _WidgetTree._findChildren(
       this,
       _rootElement,
       tester,
+      debugContents: debugContents,
     );
+
+    if (debugContents?.isNotEmpty == true) {
+      debugContents?.forEach(
+        // ignore: avoid_print
+        (message) => print(message),
+      );
+    }
   }
 }
 
@@ -23,6 +36,7 @@ class _WidgetTreeNode extends _WidgetTree {
   _WidgetTreeNode(
     this.nodeElement, {
     required super.debugDepth,
+    required super.debugContents,
     super.parentMatchesDebugFilter,
     required super.indexOptions,
   }) : super(parentMatchesIndexFilter: true);
@@ -33,13 +47,35 @@ class _WidgetTreeNode extends _WidgetTree {
     // Check if this node should be printed for debugging
     if (indexOptions.matchesDebugFilter(nodeElement) ||
         parentMatchesDebugFilter) {
-      String message = debugDepth > 0 ? '|' : '';
+      String spacing = debugDepth > 0 ? '|' : '';
       for (int i = 0; i < debugDepth; i++) {
-        message += ' ';
+        spacing += ' ';
       }
-      message += 'Found: ${nodeElement.widget.runtimeType}';
-      // ignore: avoid_print
-      print(message);
+
+      if (indexOptions.debugTree) {
+        final String message =
+            '${spacing}Found: ${nodeElement.widget.runtimeType}';
+        // ignore: avoid_print
+        print(message);
+      }
+
+      // Append specific debug message
+      if (indexOptions.debugContents) {
+        // Print Key names
+        if (nodeElement.widget.key != null) {
+          debugContents?.add(spacing + nodeElement.widget.key.toString());
+        }
+
+        // Print Text content
+        String? widgetDisplay;
+        if (nodeElement.widget is Text) {
+          widgetDisplay = (nodeElement.widget as Text).data ?? '(Empty Text)';
+        }
+        if (widgetDisplay != null) {
+          debugContents?.add(spacing + widgetDisplay);
+        }
+      }
+
       parentMatchesDebugFilter = true;
     }
 
@@ -48,6 +84,7 @@ class _WidgetTreeNode extends _WidgetTree {
       nodeElement,
       tester,
       debugDepth: parentMatchesDebugFilter ? debugDepth + 1 : 0,
+      debugContents: debugContents,
     );
   }
 }
@@ -58,11 +95,13 @@ abstract class _WidgetTree {
   bool parentMatchesIndexFilter;
   bool parentMatchesDebugFilter;
   final int debugDepth;
+  List<String>? debugContents;
   IndexOptions indexOptions;
 
   _WidgetTree({
     required this.indexOptions,
     this.debugDepth = 0,
+    this.debugContents,
     this.parentMatchesIndexFilter = false,
     this.parentMatchesDebugFilter = false,
   });
@@ -72,10 +111,17 @@ abstract class _WidgetTree {
     Element parentElement,
     WidgetTester tester, {
     int debugDepth = 0,
+    required List<String>? debugContents,
   }) {
     parentElement.visitChildren(
       (element) {
-        _add(tree, element, tester, debugDepth: debugDepth);
+        _add(
+          tree,
+          element,
+          tester,
+          debugDepth: debugDepth,
+          debugContents: debugContents,
+        );
       },
     );
   }
@@ -85,6 +131,7 @@ abstract class _WidgetTree {
     Element child,
     WidgetTester tester, {
     int debugDepth = 0,
+    required List<String>? debugContents,
   }) {
     tree.indexOptions.checkForErrorWidgets(child);
 
@@ -93,13 +140,14 @@ abstract class _WidgetTree {
       final _WidgetTreeNode node = _WidgetTreeNode(
         child,
         debugDepth: debugDepth,
+        debugContents: debugContents,
         parentMatchesDebugFilter: tree.parentMatchesDebugFilter,
         indexOptions: tree.indexOptions,
       );
       node.create(tester);
       tree.addChild(node);
     } else {
-      _findChildren(tree, child, tester);
+      _findChildren(tree, child, tester, debugContents: debugContents);
     }
   }
 
@@ -112,8 +160,28 @@ abstract class _WidgetTree {
     return _search((element) => element?.key == searchCriteria);
   }
 
+  TestElementWrapperCollection searchKeyText(String searchCriteria) {
+    return _search((element) => element?.keyText == searchCriteria);
+  }
+
   TestElementWrapperCollection searchText(String searchCriteria) {
     return _search((element) => element?.text == searchCriteria);
+  }
+
+  TestElementWrapperCollection searchTextContaining(String searchCriteria) {
+    return _search(
+      (element) => element?.text?.contains(searchCriteria) == true,
+    );
+  }
+
+  // Matches a string against a regular expression
+  TestElementWrapperCollection searchTextMatch(RegExp searchCriteria) {
+    return _search((element) {
+      if (element?.text != null) {
+        return searchCriteria.hasMatch(element?.text ?? '');
+      }
+      return false;
+    });
   }
 
   TestElementWrapperCollection searchIcon(IconData searchCriteria) {
