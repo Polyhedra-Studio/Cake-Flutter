@@ -1,4 +1,4 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class IndexOptions {
   /// Outputs to the console a tree of what will be indexed
@@ -56,7 +56,11 @@ class IndexOptions {
   void checkForErrorWidgets(Element element) {
     if (element.widget is ErrorWidget && warnOnErrorWidgets) {
       final String widgetMessage = (element.widget as ErrorWidget).message;
-      throw 'Found an ErrorWidget with the following message. To ignore this and continue, set IndexOptions.warnOnErrorWidgets to false:\n$widgetMessage';
+      throw CakeFlutterError(
+        'Found an ErrorWidget with the following message:\n$widgetMessage',
+        hint:
+            'To ignore this and continue, set IndexOptions.warnOnErrorWidgets to false',
+      );
     }
   }
 

@@ -1,3 +1,31 @@
+## 0.7.0 (2024-07-25)
+- [ADD][Snap] Added Snapshot testing. The .snapshot() function can be called any time on the context object to take a snapshot of the current widget. It can also be called on a search collection to take a snapshot of specific widgets. Snapshots are kept on the context.snapshots collection for easy testing.
+- [ADD][Expect] Added .snapshotMatches(), .snapshotsMatch(), and .matchesGolden() to compare snapshots against existing versions.
+- [ADD][Expect] Added .snapshotIsEqual() and .snapshotIsNotEqual() to compare against two snapshots taken. Useful for before and after states.
+- [MOD][Setup] SetupSettings can now be inherited.
+- [ADD][Setup] Added .setSurfaceSize() and surfaceSize parameter to SetupSettings and setApp. This functionality allows for the screen size to be changed dynamically.
+- [ADD][Setup] Added includeNavigationMock and navigationMocks parameter to SetupSettings and setApp. This allows for navigation to be observable for ensuring when a navigation call is made.ß
+- [PKG] Updated Cake to 6.2.0 to include mocks.
+- [MOD][Meta] File organization
+- [ADD][Errors] Added CakeFlutterError, which has special formatting for displaying error messages, short description of where the error occurred, and (hopefully) helpful hints on how to proceed when the error occurs.
+
+Here's an example of the new error style:
+```
+ - CakeFlutterError: --------------------------------------------------------------
+|                                                                                  |
+| Desc: _ElevatedButtonWithIcon [String <'ImportMenuWidget - Button:               |
+|       uploadOrders'>] at Offset(320.9, 318.0) was not hit.                       |
+|   On: search.key([String <'ImportMenuWidget - Button: uploadOrders'>]).tap()     |
+| Hint: The widget is could be off-screen, or another widget is obscuring it, or   |
+|       the widget cannot receive pointer events.                                  |
+|                                                                                  |
+|       If this action is intentional, mute this message with the "warnIfMissed"   |
+|       flag.                                                                      |
+|                                                                                  |
+ - Stacktrace: --------------------------------------------------------------------
+# 0     [Stacktrace information...]
+ ```
+
 ## 0.6.0 (2024-07-20)
 - [BREAKING][Index] IndexOptions are now expanded in the test.index() parameters.
 - [BREAKING][Search] By default, search will only index the widget being called by setApp. To revert to the old behavior of indexing the entire widget tree, turn on includeSetupWidgets in IndexOptions. This might be needed if you are searching for something that fires off of the scaffold widget, such as dialogs and snack bars.

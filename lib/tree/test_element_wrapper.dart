@@ -1,10 +1,13 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class TestElementWrapper<W extends Widget> implements TestElementActions {
   final bool isEmpty;
   final Element element;
 
-  W widget;
+  W? _widget;
+  W get widget => _widget ?? (Container() as W);
+
+  String? _parentCollectionName;
 
   Key? _key;
   Key? get key => _key;
@@ -24,9 +27,19 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
   WidgetTester? __tester;
   WidgetTester get _tester {
     if (__tester == null) {
-      throw 'Element is not ready yet. Call setApp() in an async first.';
+      throw CakeFlutterError.notInitialized();
     }
     return __tester!;
+  }
+
+  SnapshotWidgetCallback? __onSnapshot;
+  SnapshotWidgetCallback get _onSnapshot {
+    if (__onSnapshot == null) {
+      throw CakeFlutterError.notInitialized(
+        thrownOn: '$_parentCollectionName.snapshot()',
+      );
+    }
+    return __onSnapshot!;
   }
 
   final TestElementWrapperCollection _children;
@@ -39,22 +52,41 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
   TestElementWrapper(
     this.element,
     this.__tester, {
+    required SnapshotWidgetCallback onSnapshot,
     TestElementWrapperCollection? children,
-  })  : widget = (element.widget as W),
+  })  : __onSnapshot = onSnapshot,
         _children = children ?? TestElementWrapperCollection(),
         isEmpty = false {
+    try {
+      _widget = element.widget as W;
+    } on TypeError catch (e) {
+      if (e.toString() == 'Null check operator used on a null value') {
+        throw CakeFlutterError(
+          'Null check operator was used on a null value when fetching the widget.',
+          hint:
+              'This usually happens when the indexed Widget Tree is stale. Try calling index() again.',
+          thrownOn: _parentCollectionName,
+        );
+      } else {
+        rethrow;
+      }
+    }
     _parseElement();
   }
 
   TestElementWrapper.empty()
-      : widget = Container() as W,
-        element = StatelessElement(Container()),
+      : element = StatelessElement(Container()),
         _children = TestElementWrapperCollection<W>(),
         isEmpty = true;
 
   TestElementWrapper<W2> asType<W2 extends Widget>() {
     assert(widget is W2, 'Converting ${widget.runtimeType} to $W2');
-    return TestElementWrapper<W2>(element, _tester, children: _children);
+    return TestElementWrapper<W2>(
+      element,
+      _tester,
+      onSnapshot: _onSnapshot,
+      children: _children,
+    );
   }
 
   @override
@@ -63,9 +95,10 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
     bool warnIfInvalid = true,
   }) async {
     if (isEmpty) {
-      return _throwMessage(
-        'Cannot tap on a widget that does not exist.',
+      return _throwNotFoundMessage(
+        'tap',
         warnIfInvalid: warnIfInvalid,
+        thrownOn: 'tap()',
       );
     }
 
@@ -91,25 +124,28 @@ class TestElementWrapper<W extends Widget> implements TestElementActions {
               !(Offset.zero & _tester.binding.renderView.size)
                   .contains(location);
           if (outOfBounds) {
-            return _throwMessage(
+            return _throwMissedMessage(
               '$displayName at $location is outside the bounds of the root of the render tree, ${_tester.binding.renderView.size}.',
               warnIfInvalid: warnIfInvalid,
+              thrownOn: 'tap()',
             );
           } else {
-            return _throwMessage(
-              '''
-$displayName at $location was not hit. Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
-''',
+            return _throwMissedMessage(
+              '$displayName at $location was not hit.',
+              hint:
+                  'The widget is could be off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.',
               warnIfInvalid: warnIfInvalid,
+              thrownOn: 'tap()',
             );
           }
         }
       }
       return TestAsyncUtils.guard(() => _tester.tapAt(location));
     } else {
-      return _throwMessage(
+      return _throwInvalidMessage(
         '$displayName does not have a render object to tap onto.',
         warnIfInvalid: warnIfInvalid,
+        thrownOn: 'tap()',
       );
     }
   }
@@ -123,9 +159,10 @@ $displayName at $location was not hit. Maybe the widget is actually off-screen, 
     if (focusElement == null ||
         focusElement.element is! StatefulElement ||
         (focusElement.element as StatefulElement).state is! EditableTextState) {
-      return _throwMessage(
+      return _throwInvalidMessage(
         'Cannot focus on $displayName.',
         warnIfInvalid: warnIfInvalid,
+        thrownOn: 'focus()',
       );
     }
 
@@ -148,9 +185,10 @@ $displayName at $location was not hit. Maybe the widget is actually off-screen, 
   @override
   Future<void> dismiss({bool warnIfInvalid = true}) async {
     if (!_isDismissible) {
-      return _throwMessage(
+      return _throwInvalidMessage(
         '$displayName is not a supported dismissible widget.',
         warnIfInvalid: warnIfInvalid,
+        thrownOn: 'focus()',
       );
     }
 
@@ -220,6 +258,37 @@ $displayName at $location was not hit. Maybe the widget is actually off-screen, 
   }
 
   @override
+  Future<Snapshot?> snapshot({
+    bool? includeSetupWidgets,
+    bool? createIfMissing,
+    bool? createCopyIfMismatch,
+    String? mismatchDirectory,
+    String? mismatchFileName,
+    bool? overwriteGolden,
+    String? directory,
+    String? fileName,
+    String? fontFamily,
+    Widget? snapshotWidget,
+    SetupSettings? snapshotWidgetSetup,
+    bool warnIfInvalid = true,
+  }) {
+    return _onSnapshot(
+      includeSetupWidgets: includeSetupWidgets,
+      createIfMissing: createIfMissing,
+      createCopyIfMismatch: createCopyIfMismatch,
+      mismatchDirectory: mismatchDirectory,
+      mismatchFileName: mismatchFileName,
+      overwriteGolden: overwriteGolden,
+      directory: directory,
+      fileName: fileName,
+      fontFamily: fontFamily,
+      snapshotWidget: snapshotWidget ?? widget,
+      snapshotWidgetSetup: snapshotWidgetSetup,
+      warnIfInvalid: warnIfInvalid,
+    );
+  }
+
+  @override
   bool hasChildOfType<T extends Widget>() {
     bool found = false;
 
@@ -282,9 +351,10 @@ $displayName at $location was not hit. Maybe the widget is actually off-screen, 
     bool warnIfInvalid = true,
   }) async {
     if (start == null || end == null) {
-      return _throwMessage(
+      return _throwInvalidMessage(
         '$displayName does not have a valid render object to swipe.',
         warnIfInvalid: warnIfInvalid,
+        thrownOn: 'swipe()',
       );
     }
 
@@ -311,11 +381,46 @@ $displayName at $location was not hit. Maybe the widget is actually off-screen, 
     return null;
   }
 
-  void _throwMessage(String message, {bool warnIfInvalid = true}) {
+  void _throwInvalidMessage(
+    String message, {
+    bool warnIfInvalid = true,
+    required String thrownOn,
+  }) {
     if (warnIfInvalid) {
-      const String mutedMessage =
-          '\nIf this action is intentional, mute this message from the "warnIfMissed" flag.';
-      throw '$message$mutedMessage';
+      throw CakeFlutterError.invalidForAction(
+        message,
+        thrownOn: '$_parentCollectionName.$thrownOn',
+      );
+    }
+    return;
+  }
+
+  void _throwMissedMessage(
+    String message, {
+    required bool warnIfInvalid,
+    required String thrownOn,
+    String? hint,
+  }) {
+    if (warnIfInvalid) {
+      throw CakeFlutterError.missedForAction(
+        message,
+        thrownOn: '$_parentCollectionName.$thrownOn',
+        hints: hint != null ? [hint] : null,
+      );
+    }
+    return;
+  }
+
+  void _throwNotFoundMessage(
+    String action, {
+    required bool warnIfInvalid,
+    required String thrownOn,
+  }) {
+    if (warnIfInvalid) {
+      throw CakeFlutterError.notFoundForAction(
+        action,
+        thrownOn: '$_parentCollectionName.$thrownOn',
+      );
     }
     return;
   }

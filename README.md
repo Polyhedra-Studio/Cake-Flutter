@@ -140,6 +140,9 @@ Valid search criteria:
 #### Indexing
 Searching requires a bit of processing to index, so you must manually call test.index() first. Once index you can call test.search to search widgets. You can add indexing options to only index certain widgets for better search performance or enable debugging options to print to the console. Remember to turn off any debugging flags before commit code.
 
+### Snapshot Testing
+Cake supports snapshot testing. Snapshots are 
+
 ## Expect Matches
 Generic
   - equals
@@ -166,6 +169,11 @@ Flutter-specific
   - findsWidgets
   - findsNWidgets
   - findsAtLeastNWidgets
+  - snapshotMatches
+  - snapshotsMatch
+  - matchesGolden
+  - snapshotIsEqual
+  - snapshotIsNotEqual
 
 * isWidgetType will need a generic defined or else it will always pass as true as it thinks the type is `Widget`.
 

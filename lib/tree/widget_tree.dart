@@ -1,11 +1,16 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class WidgetTree extends _WidgetTree {
   final Element _rootElement;
   WidgetTree(this._rootElement, {required super.indexOptions});
 
-  void index(IndexOptions indexOptions, WidgetTester tester) {
-    elementWrapper = TestElementWrapper(_rootElement, tester);
+  void index(
+    IndexOptions indexOptions,
+    WidgetTester tester, {
+    required SnapshotWidgetCallback onSnapshot,
+  }) {
+    elementWrapper =
+        TestElementWrapper(_rootElement, tester, onSnapshot: onSnapshot);
     if (indexOptions.matchesIndexFilter(_rootElement)) {
       parentMatchesIndexFilter = true;
     }
@@ -18,6 +23,7 @@ class WidgetTree extends _WidgetTree {
       this,
       _rootElement,
       tester,
+      onSnapshot: onSnapshot,
       debugContents: debugContents,
     );
 
@@ -41,8 +47,12 @@ class _WidgetTreeNode extends _WidgetTree {
     required super.indexOptions,
   }) : super(parentMatchesIndexFilter: true);
 
-  void create(WidgetTester tester) {
-    elementWrapper = TestElementWrapper(nodeElement, tester);
+  void create(
+    WidgetTester tester, {
+    required SnapshotWidgetCallback onSnapshot,
+  }) {
+    elementWrapper =
+        TestElementWrapper(nodeElement, tester, onSnapshot: onSnapshot);
 
     // Check if this node should be printed for debugging
     if (indexOptions.matchesDebugFilter(nodeElement) ||
@@ -83,6 +93,7 @@ class _WidgetTreeNode extends _WidgetTree {
       this,
       nodeElement,
       tester,
+      onSnapshot: onSnapshot,
       debugDepth: parentMatchesDebugFilter ? debugDepth + 1 : 0,
       debugContents: debugContents,
     );
@@ -110,6 +121,7 @@ abstract class _WidgetTree {
     _WidgetTree tree,
     Element parentElement,
     WidgetTester tester, {
+    required SnapshotWidgetCallback onSnapshot,
     int debugDepth = 0,
     required List<String>? debugContents,
   }) {
@@ -119,6 +131,7 @@ abstract class _WidgetTree {
           tree,
           element,
           tester,
+          onSnapshot: onSnapshot,
           debugDepth: debugDepth,
           debugContents: debugContents,
         );
@@ -130,6 +143,7 @@ abstract class _WidgetTree {
     _WidgetTree tree,
     Element child,
     WidgetTester tester, {
+    required SnapshotWidgetCallback onSnapshot,
     int debugDepth = 0,
     required List<String>? debugContents,
   }) {
@@ -144,10 +158,16 @@ abstract class _WidgetTree {
         parentMatchesDebugFilter: tree.parentMatchesDebugFilter,
         indexOptions: tree.indexOptions,
       );
-      node.create(tester);
+      node.create(tester, onSnapshot: onSnapshot);
       tree.addChild(node);
     } else {
-      _findChildren(tree, child, tester, debugContents: debugContents);
+      _findChildren(
+        tree,
+        child,
+        tester,
+        onSnapshot: onSnapshot,
+        debugContents: debugContents,
+      );
     }
   }
 
@@ -156,67 +176,110 @@ abstract class _WidgetTree {
     elementWrapper?._addChild(child.elementWrapper!);
   }
 
-  TestElementWrapperCollection searchKey(Key searchCriteria) {
-    return _search((element) => element?.key == searchCriteria);
+  TestElementWrapperCollection searchKey(
+    Key searchCriteria,
+    String searchName,
+  ) {
+    return _search((element) => element?.key == searchCriteria, searchName);
   }
 
-  TestElementWrapperCollection searchKeyText(String searchCriteria) {
-    return _search((element) => element?.keyText == searchCriteria);
+  TestElementWrapperCollection searchKeyText(
+    String searchCriteria,
+    String searchName,
+  ) {
+    return _search((element) => element?.keyText == searchCriteria, searchName);
   }
 
-  TestElementWrapperCollection searchText(String searchCriteria) {
-    return _search((element) => element?.text == searchCriteria);
+  TestElementWrapperCollection searchText(
+    String searchCriteria,
+    String searchName,
+  ) {
+    return _search((element) => element?.text == searchCriteria, searchName);
   }
 
-  TestElementWrapperCollection searchTextContaining(String searchCriteria) {
+  TestElementWrapperCollection searchTextContaining(
+    String searchCriteria,
+    String searchName,
+  ) {
     return _search(
       (element) => element?.text?.contains(searchCriteria) == true,
+      searchName,
     );
   }
 
   // Matches a string against a regular expression
-  TestElementWrapperCollection searchTextMatch(RegExp searchCriteria) {
-    return _search((element) {
-      if (element?.text != null) {
-        return searchCriteria.hasMatch(element?.text ?? '');
-      }
-      return false;
-    });
+  TestElementWrapperCollection searchTextMatch(
+    RegExp searchCriteria,
+    String searchName,
+  ) {
+    return _search(
+      (element) {
+        if (element?.text != null) {
+          return searchCriteria.hasMatch(element?.text ?? '');
+        }
+        return false;
+      },
+      searchName,
+    );
   }
 
-  TestElementWrapperCollection searchIcon(IconData searchCriteria) {
-    return _search((element) => element?.iconData == searchCriteria);
+  TestElementWrapperCollection searchIcon(
+    IconData searchCriteria,
+    String searchName,
+  ) {
+    return _search(
+      (element) => element?.iconData == searchCriteria,
+      searchName,
+    );
   }
 
-  TestElementWrapperCollection<W> searchType<W extends Widget>([
+  TestElementWrapperCollection<W> searchType<W extends Widget>(
+    String searchName, [
     TestElementWrapperCollection<W>? collection,
   ]) {
-    collection ??= TestElementWrapperCollection<W>();
+    collection ??= TestElementWrapperCollection<W>(collectionName: searchName);
 
-    if (elementWrapper?.widget is W) {
+    if (elementWrapper?.widget is W && elementWrapper != null) {
       collection.add(elementWrapper!.asType<W>());
     }
 
     for (var element in _children) {
-      element.searchType<W>(collection);
+      element.searchType<W>(searchName, collection);
     }
 
     return collection;
   }
 
   TestElementWrapperCollection _search<W extends Widget>(
-    bool Function(TestElementWrapper? element) searchMatcher, [
+    bool Function(TestElementWrapper? element) searchMatcher,
+    String searchName, [
     TestElementWrapperCollection? collection,
   ]) {
-    collection ??= TestElementWrapperCollection();
+    collection ??= TestElementWrapperCollection(collectionName: searchName);
 
     if (elementWrapper != null && searchMatcher(elementWrapper)) {
       collection.add(elementWrapper!);
     }
     for (var element in _children) {
-      element._search(searchMatcher, collection);
+      element._search(searchMatcher, searchName, collection);
     }
 
     return collection;
   }
 }
+
+// This should largely mirror flutter_context.snapshot()
+typedef SnapshotWidgetCallback = Future<Snapshot?> Function({
+  bool? includeSetupWidgets,
+  bool? createIfMissing,
+  bool? createCopyIfMismatch,
+  String? mismatchDirectory,
+  String? mismatchFileName,
+  bool? overwriteGolden,
+  String? directory,
+  String? fileName,
+  String? fontFamily,
+  bool? warnIfInvalid,
+  Widget? snapshotWidget,
+  SetupSettings? snapshotWidgetSetup,
+});

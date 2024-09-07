@@ -1,4 +1,4 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class FlutterTestRunner extends TestRunner<FlutterContext> {
   FlutterTestRunner(

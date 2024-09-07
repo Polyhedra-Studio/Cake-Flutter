@@ -1,4 +1,4 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class FlutterExpect<ExpectedType extends Widget> extends Expect<ExpectedType> {
   FlutterExpect({

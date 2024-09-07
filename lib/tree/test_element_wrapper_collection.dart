@@ -1,13 +1,15 @@
-part of '../cake_flutter.dart';
+part of '../../cake_flutter.dart';
 
 class TestElementWrapperCollection<W extends Widget>
     implements Iterable<TestElementWrapper<W>>, TestElementActions {
   final List<TestElementWrapper<W>> elements = [];
+  String? collectionName;
 
-  TestElementWrapperCollection();
+  TestElementWrapperCollection({this.collectionName});
 
   void add(TestElementWrapper<W> element) {
     elements.add(element);
+    element._parentCollectionName = collectionName;
   }
 
   W get widget {
@@ -22,7 +24,8 @@ class TestElementWrapperCollection<W extends Widget>
   Future<void> tap({bool warnIfMissed = true, bool warnIfInvalid = true}) {
     if (elements.isEmpty) {
       return _throwMessage(
-        'Cannot tap on a widget that does not exist.',
+        'tap',
+        thrownOn: '$collectionName.tap()',
         warnIfInvalid: warnIfInvalid,
       );
     }
@@ -38,7 +41,11 @@ class TestElementWrapperCollection<W extends Widget>
   @override
   Future<void> enterText(String text, {bool warnIfInvalid = true}) {
     if (elements.isEmpty) {
-      _throwMessage('Cannot enter text on a widget that does not exist.');
+      _throwMessage(
+        'enter text',
+        thrownOn: '$collectionName.enterText()',
+        warnIfInvalid: warnIfInvalid,
+      );
     }
     return elements.first.enterText(text, warnIfInvalid: warnIfInvalid);
   }
@@ -50,7 +57,11 @@ class TestElementWrapperCollection<W extends Widget>
   @override
   Future<void> focus({bool warnIfInvalid = true}) {
     if (elements.isEmpty) {
-      return _throwMessage('Cannot focus on a widget that does not exist.');
+      return _throwMessage(
+        'focus',
+        thrownOn: '$collectionName.focus()',
+        warnIfInvalid: warnIfInvalid,
+      );
     }
     return elements.first.focus(warnIfInvalid: warnIfInvalid);
   }
@@ -62,7 +73,11 @@ class TestElementWrapperCollection<W extends Widget>
   @override
   Future<void> dismiss({bool warnIfInvalid = true}) {
     if (elements.isEmpty) {
-      return _throwMessage('Cannot dismiss a widget that does not exist.');
+      return _throwMessage(
+        'dismiss',
+        thrownOn: '$collectionName.dismiss()',
+        warnIfInvalid: warnIfInvalid,
+      );
     }
     return elements.first.dismiss(warnIfInvalid: warnIfInvalid);
   }
@@ -87,7 +102,8 @@ class TestElementWrapperCollection<W extends Widget>
   }) {
     if (elements.isEmpty) {
       return _throwMessage(
-        'Cannot swipe on a widget that does not exist.',
+        'swipe',
+        thrownOn: '$collectionName.swipe()',
         warnIfInvalid: warnIfInvalid,
       );
     }
@@ -112,7 +128,8 @@ class TestElementWrapperCollection<W extends Widget>
   }) {
     if (elements.isEmpty) {
       return _throwMessage(
-        'Cannot swipe on a widget that does not exist.',
+        'swipe',
+        thrownOn: '$collectionName.swipeCustom()',
         warnIfInvalid: warnIfInvalid,
       );
     }
@@ -121,6 +138,60 @@ class TestElementWrapperCollection<W extends Widget>
       start: start,
       end: end,
       duration: duration,
+      warnIfInvalid: warnIfInvalid,
+    );
+  }
+
+  /// Takes a snapshot of all the elements in the collection, collated into a
+  /// single column widget. If there is only one element in the collection, it
+  /// the column will not be created.
+  ///
+  /// If the collection is empty, throws an exception. If this is intentional,
+  /// turn off the [warnIfInvalid] flag.
+  @override
+  Future<Snapshot?> snapshot({
+    bool? includeSetupWidgets,
+    bool? createIfMissing,
+    bool? createCopyIfMismatch,
+    String? mismatchDirectory,
+    String? mismatchFileName,
+    bool? overwriteGolden,
+    String? directory,
+    String? fileName,
+    String? fontFamily,
+    Widget? snapshotWidget,
+    SetupSettings? snapshotWidgetSetup,
+    bool warnIfInvalid = true,
+  }) {
+    if (elements.isEmpty) {
+      return _throwMessage<Snapshot>(
+        'snapshot',
+        thrownOn: '$collectionName.snapshot()',
+        warnIfInvalid: warnIfInvalid,
+      );
+    }
+
+    final Widget? snapshotWidget = elements.length == 1
+        ? null
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: elements.map((element) => element.widget).toList(),
+          );
+
+    // The test element itself knows how to snapshot, so regardless if this is
+    // one element or many, call the first one to take the snapshot.
+    return elements.first.snapshot(
+      includeSetupWidgets: includeSetupWidgets,
+      createIfMissing: createIfMissing,
+      createCopyIfMismatch: createCopyIfMismatch,
+      mismatchDirectory: mismatchDirectory,
+      mismatchFileName: mismatchFileName,
+      overwriteGolden: overwriteGolden,
+      directory: directory,
+      fileName: fileName,
+      fontFamily: fontFamily,
+      snapshotWidget: snapshotWidget,
+      snapshotWidgetSetup: snapshotWidgetSetup,
       warnIfInvalid: warnIfInvalid,
     );
   }
@@ -151,13 +222,18 @@ class TestElementWrapperCollection<W extends Widget>
     );
   }
 
-  Future<void> _throwMessage(String message, {bool warnIfInvalid = true}) {
+  Future<T?> _throwMessage<T>(
+    String action, {
+    required String thrownOn,
+    bool warnIfInvalid = true,
+  }) async {
     if (warnIfInvalid) {
-      const String mutedMessage =
-          '\nIf this action is intentional, mute this message from the "warnIfMissed" flag.';
-      throw '$message$mutedMessage';
+      throw CakeFlutterError.notFoundForAction(
+        action,
+        thrownOn: thrownOn,
+      );
     }
-    return Future.value();
+    return null;
   }
 
   // ----- Iterable Overrides -----
