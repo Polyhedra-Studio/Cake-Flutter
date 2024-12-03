@@ -177,6 +177,243 @@ Flutter-specific
 
 * isWidgetType will need a generic defined or else it will always pass as true as it thinks the type is `Widget`.
 
+### Usage Example
+
+1. Taking a simple snapshot of the entire widget that is set up.
+
+```dart
+Test(
+  'Counter should start at zero',
+  action: (test) async {
+    await test.snapshot(fileName: 'initial_state');
+  },
+  assertions: (test) => [
+    SnapshotExpect.snapshotMatches(test.snapshots.first),
+  ],
+)
+```
+
+2. Taking a snapshot of multiple widgets that match a criteria
+```dart
+Test(
+  'Can take a snapshot of multiple widgets',
+  action: (test) async {
+    await test.search.textIncludes('').snapshot(
+          fileName: 'multiple_widgets',
+          // Because we're taking a snapshot of only text widgets and not
+          // it's parent scaffold, we need to specify the text direction.
+          snapshotWidgetSetup:
+              const SetupSettings(textDirection: TextDirection.ltr),
+        );
+  },
+  assertions: (test) => [
+    // Note that calling a snapshot of a collection will return just
+    // one snapshot. This is just here to show different ways to check
+    // snapshots.
+    ...SnapshotExpect.snapshotsMatch(test.snapshots),
+  ],
+),
+```
+
+### Snapshot Options
+Snapshot options allow for controlling how the snapshot is rendered, how it handles mismatches, and where it should be saved. These can be set individually per snapshot or set for a runner, group, or test.
+
+1. includeSetupWidgets
+
+	•	Type: bool?
+	•	Default: false
+	•	Description:
+	•	Determines whether to include setup widgets in the snapshot.
+	•	If false, the snapshot will only include the root widget.
+	•	Usage:
+
+```dart
+test.snapshot(includeSetupWidgets: true);
+```
+
+2. createIfMissing
+
+	•	Type: bool?
+	•	Default: true
+	•	Description:
+	•	Creates the snapshot if it does not already exist.
+	•	Useful for initializing snapshots during the first test run.
+	•	Usage:
+
+```dart
+test.snapshot(createIfMissing: false);
+```
+
+3. createCopyIfMismatch
+
+	•	Type: bool?
+	•	Default: true
+	•	Description:
+	•	If the snapshot does not match, creates a copy of the mismatched snapshot.
+	•	Helps debug changes by preserving the current state for comparison.
+	•	Usage:
+
+```dart
+test.snapshot(createCopyIfMismatch: true);
+```
+
+4. mismatchDirectory and mismatchFileName
+
+	•	Type: String?
+	•	Default: Appends _mismatch to the directory and file name of the snapshot.
+	•	Description:
+	•	Specifies where to save the mismatched snapshot.
+	•	Useful for organizing mismatched snapshots in a dedicated directory.
+	•	Usage:
+
+```dart
+test.snapshot(
+  mismatchDirectory: 'test/snapshots/mismatches',
+  mismatchFileName: 'my_widget_mismatch',
+);
+```
+
+5. overwriteGolden
+
+	•	Type: bool?
+	•	Default: false
+	•	Description:
+	•	Overwrites the current golden file if it exists.
+	•	Useful for updating snapshots intentionally after a change.
+	•	Usage:
+
+```dart
+test.snapshot(overwriteGolden: true);
+```
+
+6. directory and fileName
+
+	•	Type: String?
+	•	Default:
+	•	directory: "test/snapshots"
+	•	fileName: Derived from the test name.
+	•	Description:
+	•	Specifies the location and name of the snapshot file.
+	•	Usage:
+
+```dart
+test.snapshot(
+  directory: 'custom/snapshots',
+  fileName: 'my_widget',
+);
+```
+
+7. fontFamily
+
+	•	Type: String?
+	•	Default: Will use Flutter's default testing font.
+	•	Description:
+	  •	Specifies the font family to use in the snapshot.
+	  •	If using a custom font, load it first and pass the family name here.
+	•	Usage:
+
+```dart
+test.snapshot(fontFamily: 'Roboto');
+```
+
+8. warnIfInvalid
+
+	•	Type: bool?
+	•	Default: Not explicitly documented.
+	•	Description:
+	  •	Displays a warning if the snapshot is invalid or not comparable.
+	•	Usage:
+
+```dart
+test.snapshot(warnIfInvalid: true);
+```
+
+9. snapshotWidget
+
+	•	Type: Widget?
+	•	Description:
+	  •	Captures a snapshot of a specific widget instead of the entire test environment.
+	•	Usage:
+
+```dart
+test.snapshot(snapshotWidget: MyCustomWidget());
+```
+
+10. snapshotWidgetSetup
+
+	•	Type: SetupSettings?
+	•	Description:
+	  •	Provides additional configuration for the snapshotWidget, such as text direction.
+	•	Usage:
+
+```dart
+test.snapshot(
+  snapshotWidget: MyCustomWidget(),
+  snapshotWidgetSetup: const SetupSettings(textDirection: TextDirection.ltr),
+);
+```
+
+#### Example Full Usage:
+
+```dart
+test.snapshot(
+  includeSetupWidgets: false,
+  createIfMissing: true,
+  createCopyIfMismatch: true,
+  mismatchDirectory: 'test/snapshots/mismatches',
+  mismatchFileName: 'my_widget_mismatch',
+  overwriteGolden: false,
+  directory: 'test/snapshots',
+  fileName: 'my_widget',
+  fontFamily: 'Roboto',
+  warnIfInvalid: true,
+  snapshotWidget: MyCustomWidget(),
+  snapshotWidgetSetup: const SetupSettings(textDirection: TextDirection.ltr),
+);
+```
+
+### On Snapshot Fonts
+
+Depending on the version, Flutter will use "Ahem" (pre 3.7) or "FlutterTest" (3.7 or later) by default. If you notice fonts rendering as blocks in your snapshots, this default is being set. Flutter does this to ensure that individual font changes do not get in the way of snapshot testing. 
+
+However this may not always be the desired effect. To override this, load the font of choice before loading the widget. This is a really simple example and you can modify how you load it to fit your needs.
+
+```dart
+import 'package:cake_flutter/cake_flutter.dart';
+
+void main() {
+  FlutterTestRunner(
+    'Counter Snapshots',
+    [
+      Test(
+        'Counter should start at zero',
+        action: (test) async {
+          await test.snapshot();
+        },
+        assertions: (test) => [
+          ...SnapshotExpect.snapshotMatch(test.snapshots),
+        ],
+      ),
+    ],
+    setup: (test) async {
+      // Set up a custom font for the test
+      final fontData = rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+      final fontLoader = FontLoader('Roboto')..addFont(fontData);
+      await fontLoader.load();
+
+      await test.setApp(const MyApp());
+    },
+    options: const FlutterTestOptions(
+      snapshotOptions: SnapshotOptions(
+        // Set this to be used with every snapshot in this test runner.
+        // This can also be set on an individual basis when calling .snapshot().
+        fontFamily: 'Roboto',
+      ),
+    ),
+  );
+}
+```
+
 ## Flags
 
 ### File name filter
