@@ -1,3 +1,6 @@
+## 0.7.1 (2025-01-06)
+- [PKG] Removed dependency on flutter_tools
+
 ## 0.7.0 (2024-07-25)
 - [ADD][Snap] Added Snapshot testing. The .snapshot() function can be called any time on the context object to take a snapshot of the current widget. It can also be called on a search collection to take a snapshot of specific widgets. Snapshots are kept on the context.snapshots collection for easy testing.
 - [ADD][Expect] Added .snapshotMatches(), .snapshotsMatch(), and .matchesGolden() to compare snapshots against existing versions.
